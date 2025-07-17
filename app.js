@@ -17,7 +17,7 @@ export default function init({ THREE }) {
   light1.position.set(5, 10, 7);
   scene.add(light1);
 
-  const light2 = new THREE.AmbientLight(0xffffff, 0.4);
+  const light2 = new THREE.AmbientLight(0xffffff, 1.0);
   scene.add(light2);
 
   // Texture
@@ -28,7 +28,7 @@ texture.colorSpace = THREE.SRGBColorSpace;
   // Material
   const material = new THREE.MeshPhysicalMaterial({
     map: texture,
-    roughness: 0.1,
+    roughness: 0.5,
     metalness: 1,
     clearcoat: 1,
     clearcoatRoughness: 0.05,
