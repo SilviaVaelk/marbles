@@ -1,54 +1,75 @@
 export default function init({ THREE, CANNON }) {
   const canvas = document.getElementById('marble-canvas');
 
-  // Renderer
+  // === Renderer ===
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0xeeeeee);
 
   const scene = new THREE.Scene();
+
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 3, 8);
 
-  // Lights
-// Ambient light (even base light)
-scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  // === Lighting ===
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
-// Top-down directional light (main highlight)
-const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
-dirLight.position.set(5, 10, 5);
-scene.add(dirLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  dirLight.position.set(5, 10, 5);
+  scene.add(dirLight);
 
-// Fill light from below or side (adds soft illumination to shadowed parts)
-const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
-fillLight.position.set(-5, 2, -5);
-scene.add(fillLight);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  fillLight.position.set(-5, 2, -5);
+  scene.add(fillLight);
 
-
-  // Physics world
+  // === Cannon Physics World ===
   const world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.82, 0),
   });
 
-  // Ground plane (invisible)
+  // Materials
+  const marbleMaterial = new CANNON.Material('marble');
+  const groundMaterial = new CANNON.Material('ground');
+
+  const contactMaterial = new CANNON.ContactMaterial(
+    marbleMaterial,
+    groundMaterial,
+    {
+      friction: 0.4,
+      restitution: 0.6,
+    }
+  );
+  world.addContactMaterial(contactMaterial);
+
+  // Ground body (invisible)
   const groundBody = new CANNON.Body({
-    mass: 0, // static
+    mass: 0,
     shape: new CANNON.Plane(),
+    material: groundMaterial,
   });
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
 
-  // Load marble texture
+  // Optional: visible ground
+  const groundMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(50, 50),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 })
+  );
+  groundMesh.rotation.x = -Math.PI / 2;
+  groundMesh.position.y = 0;
+  scene.add(groundMesh);
+
+  // === Load Marble Texture ===
   const texture = new THREE.TextureLoader().load('assets/marble1.png');
   texture.colorSpace = THREE.SRGBColorSpace;
 
   const material = new THREE.MeshPhysicalMaterial({
     map: texture,
-    roughness: 0.5,
+    roughness: 0.3,
     metalness: 0.5,
     clearcoat: 1,
-    clearcoatRoughness: 0.05,
+    clearcoatRoughness: 0.1,
   });
 
   const geometry = new THREE.SphereGeometry(1, 64, 64);
@@ -56,15 +77,17 @@ scene.add(fillLight);
   marbleMesh.castShadow = true;
   scene.add(marbleMesh);
 
-  // Create corresponding physics body
   const marbleBody = new CANNON.Body({
     mass: 1,
     shape: new CANNON.Sphere(1),
     position: new CANNON.Vec3(0, 5, 0),
+    material: marbleMaterial,
   });
+  marbleBody.angularDamping = 0.4;
+  marbleBody.linearDamping = 0.1;
   world.addBody(marbleBody);
 
-  // Resize
+  // === Resize Handling ===
   window.addEventListener('resize', () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -73,12 +96,11 @@ scene.add(fillLight);
     renderer.setSize(width, height);
   });
 
-  // Animate
+  // === Animate ===
   function animate() {
     requestAnimationFrame(animate);
     world.step(1 / 60);
 
-    // Sync Three.js mesh with Cannon body
     marbleMesh.position.copy(marbleBody.position);
     marbleMesh.quaternion.copy(marbleBody.quaternion);
 
