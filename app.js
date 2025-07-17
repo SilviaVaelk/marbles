@@ -45,8 +45,8 @@ scene.add(fillLight);
 
   const material = new THREE.MeshPhysicalMaterial({
     map: texture,
-    roughness: 0.1,
-    metalness: 1,
+    roughness: 0.5,
+    metalness: 0.5,
     clearcoat: 1,
     clearcoatRoughness: 0.05,
   });
