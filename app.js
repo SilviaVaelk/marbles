@@ -21,8 +21,9 @@ export default function init({ THREE }) {
   scene.add(light2);
 
   // Texture
-  const texture = new THREE.TextureLoader().load('assets/marble1.png');
-  texture.colorSpace = THREE.SRGBColorSpace;
+const texture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/uv_grid_opengl.jpg');
+texture.colorSpace = THREE.SRGBColorSpace;
+
 
   // Material
   const material = new THREE.MeshPhysicalMaterial({
