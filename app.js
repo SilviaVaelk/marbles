@@ -1,47 +1,61 @@
-export default function init({ THREE }) {
+export default function init({ THREE, CANNON }) {
   const canvas = document.getElementById('marble-canvas');
 
   // Renderer
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0xeeeeee); // light gray background
+  renderer.setClearColor(0xeeeeee);
 
-  // Scene and camera
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 2, 6);
+  camera.position.set(0, 3, 8);
 
-  // Lighting
-  const light1 = new THREE.DirectionalLight(0xffffff, 1);
-  light1.position.set(5, 10, 7);
-  scene.add(light1);
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 1));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(5, 10, 5);
+  scene.add(dirLight);
 
-  const light2 = new THREE.AmbientLight(0xffffff, 1.0);
-  scene.add(light2);
+  // Physics world
+  const world = new CANNON.World({
+    gravity: new CANNON.Vec3(0, -9.82, 0),
+  });
 
-  // Texture
-const texture = new THREE.TextureLoader().load('assets/marble1.png');
-texture.colorSpace = THREE.SRGBColorSpace;
+  // Ground plane (invisible)
+  const groundBody = new CANNON.Body({
+    mass: 0, // static
+    shape: new CANNON.Plane(),
+  });
+  groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+  world.addBody(groundBody);
 
+  // Load marble texture
+  const texture = new THREE.TextureLoader().load('assets/marble1.png');
+  texture.colorSpace = THREE.SRGBColorSpace;
 
-
-  // Material
   const material = new THREE.MeshPhysicalMaterial({
     map: texture,
-    roughness: 0.5,
-    metalness: 0.5,
-    clearcoat: 0.5,
+    roughness: 0.1,
+    metalness: 1,
+    clearcoat: 1,
     clearcoatRoughness: 0.05,
   });
 
-  // Geometry and mesh
   const geometry = new THREE.SphereGeometry(1, 64, 64);
-  const marble = new THREE.Mesh(geometry, material);
-  marble.position.set(0, 1.5, 0);
-  scene.add(marble);
+  const marbleMesh = new THREE.Mesh(geometry, material);
+  marbleMesh.castShadow = true;
+  scene.add(marbleMesh);
 
-  // Resize handling
+  // Create corresponding physics body
+  const marbleBody = new CANNON.Body({
+    mass: 1,
+    shape: new CANNON.Sphere(1),
+    position: new CANNON.Vec3(0, 5, 0),
+  });
+  world.addBody(marbleBody);
+
+  // Resize
   window.addEventListener('resize', () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -50,10 +64,15 @@ texture.colorSpace = THREE.SRGBColorSpace;
     renderer.setSize(width, height);
   });
 
-  // Animation loop
+  // Animate
   function animate() {
     requestAnimationFrame(animate);
-    marble.rotation.y += 0.01;
+    world.step(1 / 60);
+
+    // Sync Three.js mesh with Cannon body
+    marbleMesh.position.copy(marbleBody.position);
+    marbleMesh.quaternion.copy(marbleBody.quaternion);
+
     renderer.render(scene, camera);
   }
 
