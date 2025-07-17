@@ -118,6 +118,13 @@ export default function init({ THREE, CANNON, OrbitControls }) {
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
+   // === DEBUG ===
+const debugCube = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshStandardMaterial({ color: 'red' })
+);
+debugCube.position.set(0, 2, 0);
+scene.add(debugCube);
 
   // === ANIMATION LOOP ===
   function animate() {
