@@ -12,10 +12,19 @@ export default function init({ THREE, CANNON }) {
   camera.position.set(0, 3, 8);
 
   // Lights
-  scene.add(new THREE.AmbientLight(0xffffff, 1));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  dirLight.position.set(5, 10, 5);
-  scene.add(dirLight);
+// Ambient light (even base light)
+scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
+// Top-down directional light (main highlight)
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+dirLight.position.set(5, 10, 5);
+scene.add(dirLight);
+
+// Fill light from below or side (adds soft illumination to shadowed parts)
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+fillLight.position.set(-5, 2, -5);
+scene.add(fillLight);
+
 
   // Physics world
   const world = new CANNON.World({
