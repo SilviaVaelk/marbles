@@ -20,10 +20,13 @@
 <body>
   <canvas id="marble-canvas"></canvas>
 
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-    import init from './app.js';
-    init({ THREE });
-  </script>
+<script type="module">
+  import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+  import init from './app.js';
+
+  init({ THREE, CANNON });
+</script>
+
 </body>
 </html>
