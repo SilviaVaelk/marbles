@@ -38,15 +38,15 @@ export default function init({ THREE, CANNON, OrbitControls }) {
   // === DATA: PROJECT MARBLES ===
   const projects = [
     {
-      texture: 'assets/marble1.jpg',
+      texture: 'assets/marble1.png',
       link: 'https://yoursite.com/project1',
     },
     {
-      texture: 'assets/marble2.jpg',
+      texture: 'assets/marble2.png',
       link: 'https://yoursite.com/project2',
     },
     {
-      texture: 'assets/marble3.jpg',
+      texture: 'assets/marble3.png',
       link: 'https://yoursite.com/project3',
     },
   ];
