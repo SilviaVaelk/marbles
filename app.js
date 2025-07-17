@@ -51,14 +51,6 @@ export default function init({ THREE, CANNON }) {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
 
-  // Optional: visible ground
-  const groundMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(50, 50),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1 })
-  );
-  groundMesh.rotation.x = -Math.PI / 2;
-  groundMesh.position.y = 0;
-  scene.add(groundMesh);
 
   // === Load Marble Texture ===
   const texture = new THREE.TextureLoader().load('assets/marble1.png');
@@ -78,7 +70,7 @@ export default function init({ THREE, CANNON }) {
   scene.add(marbleMesh);
 
   const marbleBody = new CANNON.Body({
-    mass: 1,
+    mass: 3,
     shape: new CANNON.Sphere(1),
     position: new CANNON.Vec3(0, 5, 0),
     material: marbleMaterial,
