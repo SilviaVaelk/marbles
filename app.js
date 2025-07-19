@@ -1,7 +1,6 @@
 export default function init({ THREE, CANNON, RGBELoader }) {
   const canvas = document.getElementById('marble-canvas');
 
-  // === Renderer ===
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -12,22 +11,17 @@ export default function init({ THREE, CANNON, RGBELoader }) {
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 3, 8);
 
-  // === Lighting ===
-  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  // Lights
+  scene.add(new THREE.AmbientLight(0xffffff, 1));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
   dirLight.position.set(5, 10, 5);
   scene.add(dirLight);
-  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  fillLight.position.set(-5, 2, -5);
-  scene.add(fillLight);
 
-  // === Physics World ===
-  const world = new CANNON.World({
-    gravity: new CANNON.Vec3(0, -9.82, 0),
-  });
+  // Physics world
+  const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 
-  const marbleMaterial = new CANNON.Material('marble');
-  const groundMaterial = new CANNON.Material('ground');
+  const marbleMaterial = new CANNON.Material();
+  const groundMaterial = new CANNON.Material();
   const contactMaterial = new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
     friction: 0.4,
     restitution: 0.6,
@@ -42,7 +36,7 @@ export default function init({ THREE, CANNON, RGBELoader }) {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
 
-  // === HDRI environment setup ===
+  // HDRI setup
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
 
@@ -54,7 +48,7 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       hdrTexture.dispose();
       pmremGenerator.dispose();
 
-      // === Load Marble Texture ===
+      // Load marble texture
       const texture = new THREE.TextureLoader().load('assets/marble1.png');
       texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -82,7 +76,7 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       marbleBody.linearDamping = 0.1;
       world.addBody(marbleBody);
 
-      // === Animate ===
+      // Animate
       function animate() {
         requestAnimationFrame(animate);
         world.step(1 / 60);
