@@ -54,11 +54,11 @@ export default function init({ THREE, CANNON, RGBELoader }) {
 
       const material = new THREE.MeshPhysicalMaterial({
         map: texture,
-        roughness: 0.3,
-        metalness: 0.5,
-        clearcoat: 1,
+        roughness: 0.05,
+        metalness: 1.0,
+        clearcoat: 1.0,
         clearcoatRoughness: 0.1,
-        envMapIntensity: 1.5,
+        envMapIntensity: 2.5,
       });
 
       const geometry = new THREE.SphereGeometry(1, 64, 64);
