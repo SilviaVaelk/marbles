@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Marble Physics HDR</title>
+  <title>Marble HDR Physics</title>
   <style>
     html, body {
       margin: 0;
@@ -20,7 +20,6 @@
 <body>
   <canvas id="marble-canvas"></canvas>
 
-  <!-- Load THREE and CANNON -->
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
     import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
@@ -29,10 +28,8 @@
     window.CANNON = CANNON;
   </script>
 
-  <!-- Load local patched RGBELoader -->
   <script type="module" src="./loaders/RGBELoader.js"></script>
 
-  <!-- Start the app -->
   <script type="module">
     import init from './app.js';
 
