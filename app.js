@@ -12,8 +12,8 @@ export default function init({ THREE, CANNON, RGBELoader }) {
   camera.position.set(0, 3, 8);
 
   // Lights
-  scene.add(new THREE.AmbientLight(0xffffff, 1));
-  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
   dirLight.position.set(5, 10, 5);
   scene.add(dirLight);
 
