@@ -55,9 +55,9 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       const material = new THREE.MeshPhysicalMaterial({
         map: texture,
         roughness: 0.05,
-        metalness: 1.0,
+        metalness: 0.5,
         clearcoat: 1.0,
-        clearcoatRoughness: 0.1,
+        clearcoatRoughness: 0.01,
         envMapIntensity: 2.5,
       });
 
