@@ -92,4 +92,5 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       }
 
       animate();
-    }, undefin
+    });
+}
