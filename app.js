@@ -11,7 +11,20 @@ export default function init({ THREE, CANNON }) {
 
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 3, 8);
+  
+  //HDRi
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+pmremGenerator.compileEquirectangularShader();
 
+new RGBELoader()
+  .setDataType(THREE.FloatType)
+  .load('assets/zebra.hdr', function (hdrTexture) {
+    const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
+    scene.environment = envMap;
+    hdrTexture.dispose();
+    pmremGenerator.dispose();
+  });
+  
   // === Lighting ===
   scene.add(new THREE.AmbientLight(0xffffff, 1.0));
 
@@ -28,18 +41,6 @@ export default function init({ THREE, CANNON }) {
     gravity: new CANNON.Vec3(0, -9.82, 0),
   });
 
-  //HDRi
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-pmremGenerator.compileEquirectangularShader();
-
-new RGBELoader()
-  .setDataType(THREE.FloatType)
-  .load('assets/zebra.hdr', function (hdrTexture) {
-    const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
-    scene.environment = envMap;
-    hdrTexture.dispose();
-    pmremGenerator.dispose();
-  });
 
 
   // Materials
