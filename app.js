@@ -1,4 +1,4 @@
-export default function init({ THREE, CANNON }) {
+export default function init({ THREE, CANNON, RGBELoader }) {
   const canvas = document.getElementById('marble-canvas');
 
   // === Renderer ===
