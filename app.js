@@ -54,7 +54,7 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       hdrTexture.dispose();
       pmremGenerator.dispose();
 
-      // === Create marble after HDRI is ready ===
+      // === Load Marble Texture ===
       const texture = new THREE.TextureLoader().load('assets/marble1.png');
       texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -64,7 +64,7 @@ export default function init({ THREE, CANNON, RGBELoader }) {
         metalness: 0.5,
         clearcoat: 1,
         clearcoatRoughness: 0.1,
-        envMapIntensity: 1.5, // important for visible reflections
+        envMapIntensity: 1.5,
       });
 
       const geometry = new THREE.SphereGeometry(1, 64, 64);
