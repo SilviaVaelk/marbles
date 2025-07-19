@@ -20,13 +20,28 @@
 <body>
   <canvas id="marble-canvas"></canvas>
 
+  <!-- Step 1: Load THREE and CANNON, expose to global scope -->
   <script type="module">
     import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
     import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
-    import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
+
+    window.THREE = THREE;
+    window.CANNON = CANNON;
+  </script>
+
+  <!-- Step 2: Load RGBELoader (browser-safe) -->
+  <script type="module" src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js"></script>
+
+  <!-- Step 3: Run your app with all dependencies injected -->
+  <script type="module">
     import init from './app.js';
 
-    init({ THREE, CANNON, RGBELoader });
+    init({
+      THREE: window.THREE,
+      CANNON: window.CANNON,
+      RGBELoader: window.RGBELoader,
+    });
   </script>
+
 </body>
 </html>
