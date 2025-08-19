@@ -71,7 +71,7 @@ export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
 
       // Load and add 3D object inside marble
       const loader = new GLTFLoader();
-      loader.load('assets/innerModel.glb', (gltf) => {
+      loader.load('assets/inner-model.glb', (gltf) => {
         const inner = gltf.scene;
         inner.scale.set(0.4, 0.4, 0.4);
         inner.position.set(0, 0, 0);
