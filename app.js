@@ -68,6 +68,16 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       const marbleMesh = new THREE.Mesh(geometry, material);
       marbleMesh.castShadow = true;
       scene.add(marbleMesh);
+      // Load 3D model inside the marble
+      
+      const loader = new GLTFLoader();
+      loader.load('assets/inner-model.glb', (gltf) => {
+      const innerObject = gltf.scene;
+      innerObject.scale.set(0.4, 0.4, 0.4);    // Adjust to fit inside sphere
+      innerObject.position.set(0, 0, 0);       // Center inside marble
+      marbleMesh.add(innerObject);            // 👈 Add to marble
+});
+
 
       const marbleBody = new CANNON.Body({
         mass: 3,
