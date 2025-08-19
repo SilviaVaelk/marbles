@@ -1,459 +1,255 @@
-const {
-  DataTextureLoader,
-  DataUtils,
-  FloatType,
-  HalfFloatType,
-  LinearFilter,
-  LinearSRGBColorSpace
-} = window.THREE;
-
-
-// https://github.com/mrdoob/three.js/issues/5552
-// http://en.wikipedia.org/wiki/RGBE_image_format
-
-class RGBELoader extends DataTextureLoader {
-
-	constructor( manager ) {
-
-		super( manager );
-
-		this.type = HalfFloatType;
-
-	}
-
-	// adapted from http://www.graphics.cornell.edu/~bjw/rgbe.html
-
-	parse( buffer ) {
-
-		const
-			/* default error routine.  change this to change error handling */
-			rgbe_read_error = 1,
-			rgbe_write_error = 2,
-			rgbe_format_error = 3,
-			rgbe_memory_error = 4,
-			rgbe_error = function ( rgbe_error_code, msg ) {
-
-				switch ( rgbe_error_code ) {
-
-					case rgbe_read_error: throw new Error( 'THREE.RGBELoader: Read Error: ' + ( msg || '' ) );
-					case rgbe_write_error: throw new Error( 'THREE.RGBELoader: Write Error: ' + ( msg || '' ) );
-					case rgbe_format_error: throw new Error( 'THREE.RGBELoader: Bad File Format: ' + ( msg || '' ) );
-					default:
-					case rgbe_memory_error: throw new Error( 'THREE.RGBELoader: Memory Error: ' + ( msg || '' ) );
-
-				}
-
-			},
-
-			/* offsets to red, green, and blue components in a data (float) pixel */
-			//RGBE_DATA_RED = 0,
-			//RGBE_DATA_GREEN = 1,
-			//RGBE_DATA_BLUE = 2,
-
-			/* number of floats per pixel, use 4 since stored in rgba image format */
-			//RGBE_DATA_SIZE = 4,
-
-			/* flags indicating which fields in an rgbe_header_info are valid */
-			RGBE_VALID_PROGRAMTYPE = 1,
-			RGBE_VALID_FORMAT = 2,
-			RGBE_VALID_DIMENSIONS = 4,
-
-			NEWLINE = '\n',
-
-			fgets = function ( buffer, lineLimit, consume ) {
-
-				const chunkSize = 128;
-
-				lineLimit = ! lineLimit ? 1024 : lineLimit;
-				let p = buffer.pos,
-					i = - 1, len = 0, s = '',
-					chunk = String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				while ( ( 0 > ( i = chunk.indexOf( NEWLINE ) ) ) && ( len < lineLimit ) && ( p < buffer.byteLength ) ) {
-
-					s += chunk; len += chunk.length;
-					p += chunkSize;
-					chunk += String.fromCharCode.apply( null, new Uint16Array( buffer.subarray( p, p + chunkSize ) ) );
-
-				}
-
-				if ( - 1 < i ) {
-
-					/*for (i=l-1; i>=0; i--) {
-						byteCode = m.charCodeAt(i);
-						if (byteCode > 0x7f && byteCode <= 0x7ff) byteLen++;
-						else if (byteCode > 0x7ff && byteCode <= 0xffff) byteLen += 2;
-						if (byteCode >= 0xDC00 && byteCode <= 0xDFFF) i--; //trail surrogate
-					}*/
-					if ( false !== consume ) buffer.pos += len + i + 1;
-					return s + chunk.slice( 0, i );
-
-				}
-
-				return false;
-
-			},
-
-			/* minimal header reading.  modify if you want to parse more information */
-			RGBE_ReadHeader = function ( buffer ) {
-
-
-				// regexes to parse header info fields
-				const magic_token_re = /^#\?(\S+)/,
-					gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)\s*$/,
-					exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)\s*$/,
-					format_re = /^\s*FORMAT=(\S+)\s*$/,
-					dimensions_re = /^\s*\-Y\s+(\d+)\s+\+X\s+(\d+)\s*$/,
-
-					// RGBE format header struct
-					header = {
-
-						valid: 0, /* indicate which fields are valid */
-
-						string: '', /* the actual header string */
-
-						comments: '', /* comments found in header */
-
-						programtype: 'RGBE', /* listed at beginning of file to identify it after "#?". defaults to "RGBE" */
-
-						format: '', /* RGBE format, default 32-bit_rle_rgbe */
-
-						gamma: 1.0, /* image has already been gamma corrected with given gamma. defaults to 1.0 (no correction) */
-
-						exposure: 1.0, /* a value of 1.0 in an image corresponds to <exposure> watts/steradian/m^2. defaults to 1.0 */
-
-						width: 0, height: 0 /* image dimensions, width/height */
-
-					};
-
-				let line, match;
-
-				if ( buffer.pos >= buffer.byteLength || ! ( line = fgets( buffer ) ) ) {
-
-					rgbe_error( rgbe_read_error, 'no header found' );
-
-				}
-
-				/* if you want to require the magic token then uncomment the next line */
-				if ( ! ( match = line.match( magic_token_re ) ) ) {
-
-					rgbe_error( rgbe_format_error, 'bad initial token' );
-
-				}
-
-				header.valid |= RGBE_VALID_PROGRAMTYPE;
-				header.programtype = match[ 1 ];
-				header.string += line + '\n';
-
-				while ( true ) {
-
-					line = fgets( buffer );
-					if ( false === line ) break;
-					header.string += line + '\n';
-
-					if ( '#' === line.charAt( 0 ) ) {
-
-						header.comments += line + '\n';
-						continue; // comment line
-
-					}
-
-					if ( match = line.match( gamma_re ) ) {
-
-						header.gamma = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( exposure_re ) ) {
-
-						header.exposure = parseFloat( match[ 1 ] );
-
-					}
-
-					if ( match = line.match( format_re ) ) {
-
-						header.valid |= RGBE_VALID_FORMAT;
-						header.format = match[ 1 ];//'32-bit_rle_rgbe';
-
-					}
-
-					if ( match = line.match( dimensions_re ) ) {
-
-						header.valid |= RGBE_VALID_DIMENSIONS;
-						header.height = parseInt( match[ 1 ], 10 );
-						header.width = parseInt( match[ 2 ], 10 );
-
-					}
-
-					if ( ( header.valid & RGBE_VALID_FORMAT ) && ( header.valid & RGBE_VALID_DIMENSIONS ) ) break;
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_FORMAT ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing format specifier' );
-
-				}
-
-				if ( ! ( header.valid & RGBE_VALID_DIMENSIONS ) ) {
-
-					rgbe_error( rgbe_format_error, 'missing image size specifier' );
-
-				}
-
-				return header;
-
-			},
-
-			RGBE_ReadPixels_RLE = function ( buffer, w, h ) {
-
-				const scanline_width = w;
-
-				if (
-					// run length encoding is not allowed so read flat
-					( ( scanline_width < 8 ) || ( scanline_width > 0x7fff ) ) ||
-					// this file is not run length encoded
-					( ( 2 !== buffer[ 0 ] ) || ( 2 !== buffer[ 1 ] ) || ( buffer[ 2 ] & 0x80 ) )
-				) {
-
-					// return the flat buffer
-					return new Uint8Array( buffer );
-
-				}
-
-				if ( scanline_width !== ( ( buffer[ 2 ] << 8 ) | buffer[ 3 ] ) ) {
-
-					rgbe_error( rgbe_format_error, 'wrong scanline width' );
-
-				}
-
-				const data_rgba = new Uint8Array( 4 * w * h );
-
-				if ( ! data_rgba.length ) {
-
-					rgbe_error( rgbe_memory_error, 'unable to allocate buffer space' );
-
-				}
-
-				let offset = 0, pos = 0;
-
-				const ptr_end = 4 * scanline_width;
-				const rgbeStart = new Uint8Array( 4 );
-				const scanline_buffer = new Uint8Array( ptr_end );
-				let num_scanlines = h;
-
-				// read in each successive scanline
-				while ( ( num_scanlines > 0 ) && ( pos < buffer.byteLength ) ) {
-
-					if ( pos + 4 > buffer.byteLength ) {
-
-						rgbe_error( rgbe_read_error );
-
-					}
-
-					rgbeStart[ 0 ] = buffer[ pos ++ ];
-					rgbeStart[ 1 ] = buffer[ pos ++ ];
-					rgbeStart[ 2 ] = buffer[ pos ++ ];
-					rgbeStart[ 3 ] = buffer[ pos ++ ];
-
-					if ( ( 2 != rgbeStart[ 0 ] ) || ( 2 != rgbeStart[ 1 ] ) || ( ( ( rgbeStart[ 2 ] << 8 ) | rgbeStart[ 3 ] ) != scanline_width ) ) {
-
-						rgbe_error( rgbe_format_error, 'bad rgbe scanline format' );
-
-					}
-
-					// read each of the four channels for the scanline into the buffer
-					// first red, then green, then blue, then exponent
-					let ptr = 0, count;
-
-					while ( ( ptr < ptr_end ) && ( pos < buffer.byteLength ) ) {
-
-						count = buffer[ pos ++ ];
-						const isEncodedRun = count > 128;
-						if ( isEncodedRun ) count -= 128;
-
-						if ( ( 0 === count ) || ( ptr + count > ptr_end ) ) {
-
-							rgbe_error( rgbe_format_error, 'bad scanline data' );
-
-						}
-
-						if ( isEncodedRun ) {
-
-							// a (encoded) run of the same value
-							const byteValue = buffer[ pos ++ ];
-							for ( let i = 0; i < count; i ++ ) {
-
-								scanline_buffer[ ptr ++ ] = byteValue;
-
-							}
-							//ptr += count;
-
-						} else {
-
-							// a literal-run
-							scanline_buffer.set( buffer.subarray( pos, pos + count ), ptr );
-							ptr += count; pos += count;
-
-						}
-
-					}
-
-
-					// now convert data from buffer into rgba
-					// first red, then green, then blue, then exponent (alpha)
-					const l = scanline_width; //scanline_buffer.byteLength;
-					for ( let i = 0; i < l; i ++ ) {
-
-						let off = 0;
-						data_rgba[ offset ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 1 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 2 ] = scanline_buffer[ i + off ];
-						off += scanline_width; //1;
-						data_rgba[ offset + 3 ] = scanline_buffer[ i + off ];
-						offset += 4;
-
-					}
-
-					num_scanlines --;
-
-				}
-
-				return data_rgba;
-
-			};
-
-		const RGBEByteToRGBFloat = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			destArray[ destOffset + 0 ] = sourceArray[ sourceOffset + 0 ] * scale;
-			destArray[ destOffset + 1 ] = sourceArray[ sourceOffset + 1 ] * scale;
-			destArray[ destOffset + 2 ] = sourceArray[ sourceOffset + 2 ] * scale;
-			destArray[ destOffset + 3 ] = 1;
-
-		};
-
-		const RGBEByteToRGBHalf = function ( sourceArray, sourceOffset, destArray, destOffset ) {
-
-			const e = sourceArray[ sourceOffset + 3 ];
-			const scale = Math.pow( 2.0, e - 128.0 ) / 255.0;
-
-			// clamping to 65504, the maximum representable value in float16
-			destArray[ destOffset + 0 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 0 ] * scale, 65504 ) );
-			destArray[ destOffset + 1 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 1 ] * scale, 65504 ) );
-			destArray[ destOffset + 2 ] = DataUtils.toHalfFloat( Math.min( sourceArray[ sourceOffset + 2 ] * scale, 65504 ) );
-			destArray[ destOffset + 3 ] = DataUtils.toHalfFloat( 1 );
-
-		};
-
-		const byteArray = new Uint8Array( buffer );
-		byteArray.pos = 0;
-		const rgbe_header_info = RGBE_ReadHeader( byteArray );
-
-		const w = rgbe_header_info.width,
-			h = rgbe_header_info.height,
-			image_rgba_data = RGBE_ReadPixels_RLE( byteArray.subarray( byteArray.pos ), w, h );
-
-
-		let data, type;
-		let numElements;
-
-		switch ( this.type ) {
-
-			case FloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const floatArray = new Float32Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBFloat( image_rgba_data, j * 4, floatArray, j * 4 );
-
-				}
-
-				data = floatArray;
-				type = FloatType;
-				break;
-
-			case HalfFloatType:
-
-				numElements = image_rgba_data.length / 4;
-				const halfArray = new Uint16Array( numElements * 4 );
-
-				for ( let j = 0; j < numElements; j ++ ) {
-
-					RGBEByteToRGBHalf( image_rgba_data, j * 4, halfArray, j * 4 );
-
-				}
-
-				data = halfArray;
-				type = HalfFloatType;
-				break;
-
-			default:
-
-				throw new Error( 'THREE.RGBELoader: Unsupported type: ' + this.type );
-				break;
-
-		}
-
-		return {
-			width: w, height: h,
-			data: data,
-			header: rgbe_header_info.string,
-			gamma: rgbe_header_info.gamma,
-			exposure: rgbe_header_info.exposure,
-			type: type
-		};
-
-	}
-
-	setDataType( value ) {
-
-		this.type = value;
-		return this;
-
-	}
-
-load(url, onLoad, onProgress, onError) {
-  return super.load(
-    url,
-    (buffer) => {
-      const texData = this.parse(buffer);
-      const texture = new THREE.DataTexture(
-        texData.data,
-        texData.width,
-        texData.height,
-        THREE.RGBAFormat,
-        this.type
-      );
-
-      texture.image = {
-        data: texData.data,
-        width: texData.width,
-        height: texData.height,
+// RGBELoader.js (Patched for browser use with global THREE)
+
+(function () {
+  const {
+    DataTextureLoader,
+    DataTexture,
+    DataUtils,
+    FloatType,
+    HalfFloatType,
+    LinearFilter,
+    LinearSRGBColorSpace,
+    RGBAFormat
+  } = window.THREE;
+
+  class RGBELoader extends DataTextureLoader {
+
+    constructor(manager) {
+      super(manager);
+      this.type = HalfFloatType;
+    }
+
+    setDataType(value) {
+      this.type = value;
+      return this;
+    }
+
+    load(url, onLoad, onProgress, onError) {
+      const loader = new window.THREE.FileLoader(this.manager);
+      loader.setResponseType('arraybuffer');
+      loader.setPath(this.path);
+      loader.setWithCredentials(this.withCredentials);
+      loader.load(url, (buffer) => {
+        try {
+          const texData = this.parse(buffer);
+          const texture = new DataTexture(
+            texData.data,
+            texData.width,
+            texData.height,
+            RGBAFormat,
+            this.type
+          );
+
+          texture.image = {
+            data: texData.data,
+            width: texData.width,
+            height: texData.height
+          };
+
+          texture.colorSpace = LinearSRGBColorSpace;
+          texture.minFilter = LinearFilter;
+          texture.magFilter = LinearFilter;
+          texture.generateMipmaps = false;
+          texture.flipY = true;
+          texture.needsUpdate = true;
+
+          onLoad(texture);
+        } catch (e) {
+          if (onError) onError(e);
+        }
+      }, onProgress, onError);
+    }
+
+    // --- Full parse logic ---
+    parse(buffer) {
+      const rgbe_error = (code, msg) => {
+        const errors = {
+          1: 'Read Error',
+          2: 'Write Error',
+          3: 'Bad File Format',
+          4: 'Memory Error'
+        };
+        throw new Error(`THREE.RGBELoader: ${errors[code]}: ${msg || ''}`);
       };
 
-      texture.colorSpace = THREE.LinearSRGBColorSpace;
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.generateMipmaps = false;
-      texture.flipY = true;
-      texture.needsUpdate = true;
+      const fgets = (buffer, lineLimit = 1024, consume = true) => {
+        const NEWLINE = '\n';
+        const chunkSize = 128;
+        let p = buffer.pos, i = -1, len = 0, s = '';
+        let chunk = String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
 
-      onLoad(texture);
-    },
-    onProgress,
-    onError
-  );
-}
+        while ((i = chunk.indexOf(NEWLINE)) < 0 && len < lineLimit && p < buffer.byteLength) {
+          s += chunk;
+          len += chunk.length;
+          p += chunkSize;
+          chunk += String.fromCharCode.apply(null, new Uint16Array(buffer.subarray(p, p + chunkSize)));
+        }
 
+        if (i >= 0) {
+          if (consume !== false) buffer.pos += len + i + 1;
+          return s + chunk.slice(0, i);
+        }
 
-}
+        return false;
+      };
 
-window.RGBELoader = RGBELoader;
+      const RGBE_ReadHeader = (buffer) => {
+        const header = {
+          valid: 0,
+          string: '',
+          comments: '',
+          programtype: 'RGBE',
+          format: '',
+          gamma: 1.0,
+          exposure: 1.0,
+          width: 0,
+          height: 0
+        };
 
+        let line, match;
+        const magic_re = /^#\?(\S+)/,
+          gamma_re = /^\s*GAMMA\s*=\s*(\d+(\.\d+)?)/,
+          exposure_re = /^\s*EXPOSURE\s*=\s*(\d+(\.\d+)?)/,
+          format_re = /^\s*FORMAT=(\S+)/,
+          dimensions_re = /^\s*-Y\s+(\d+)\s+\+X\s+(\d+)/;
+
+        if (buffer.pos >= buffer.byteLength || !(line = fgets(buffer))) {
+          rgbe_error(1, 'no header found');
+        }
+
+        if (!(match = line.match(magic_re))) {
+          rgbe_error(3, 'bad initial token');
+        }
+
+        header.valid |= 1;
+        header.programtype = match[1];
+        header.string += line + '\n';
+
+        while (true) {
+          line = fgets(buffer);
+          if (line === false) break;
+          header.string += line + '\n';
+
+          if (line.charAt(0) === '#') {
+            header.comments += line + '\n';
+            continue;
+          }
+
+          if ((match = line.match(gamma_re))) header.gamma = parseFloat(match[1]);
+          if ((match = line.match(exposure_re))) header.exposure = parseFloat(match[1]);
+          if ((match = line.match(format_re))) {
+            header.valid |= 2;
+            header.format = match[1];
+          }
+          if ((match = line.match(dimensions_re))) {
+            header.valid |= 4;
+            header.height = parseInt(match[1], 10);
+            header.width = parseInt(match[2], 10);
+          }
+
+          if ((header.valid & 2) && (header.valid & 4)) break;
+        }
+
+        if (!(header.valid & 2)) rgbe_error(3, 'missing format specifier');
+        if (!(header.valid & 4)) rgbe_error(3, 'missing image size specifier');
+
+        return header;
+      };
+
+      const RGBE_ReadPixels_RLE = (buffer, w, h) => {
+        const scanline_width = w;
+        if ((scanline_width < 8) || (scanline_width > 0x7fff)) {
+          return new Uint8Array(buffer);
+        }
+
+        if ((buffer[0] !== 2) || (buffer[1] !== 2) || (buffer[2] & 0x80)) {
+          return new Uint8Array(buffer);
+        }
+
+        const data_rgba = new Uint8Array(4 * w * h);
+        let offset = 0, pos = 0;
+        const ptr_end = 4 * scanline_width;
+        const rgbeStart = new Uint8Array(4);
+        const scanline_buffer = new Uint8Array(ptr_end);
+        let num_scanlines = h;
+
+        while (num_scanlines-- > 0) {
+          rgbeStart.set(buffer.subarray(pos, pos + 4));
+          pos += 4;
+
+          if ((rgbeStart[0] !== 2) || (rgbeStart[1] !== 2) || (((rgbeStart[2] << 8) | rgbeStart[3]) !== scanline_width)) {
+            rgbe_error(3, 'bad scanline format');
+          }
+
+          let ptr = 0, count;
+          while (ptr < ptr_end && pos < buffer.byteLength) {
+            count = buffer[pos++];
+            const isEncoded = count > 128;
+            if (isEncoded) count -= 128;
+            if (count === 0 || (ptr + count) > ptr_end) rgbe_error(3, 'bad scanline data');
+
+            if (isEncoded) {
+              const value = buffer[pos++];
+              scanline_buffer.fill(value, ptr, ptr + count);
+              ptr += count;
+            } else {
+              scanline_buffer.set(buffer.subarray(pos, pos + count), ptr);
+              pos += count;
+              ptr += count;
+            }
+          }
+
+          for (let i = 0; i < scanline_width; i++) {
+            let off = 0;
+            data_rgba[offset] = scanline_buffer[i + off];
+            off += scanline_width;
+            data_rgba[offset + 1] = scanline_buffer[i + off];
+            off += scanline_width;
+            data_rgba[offset + 2] = scanline_buffer[i + off];
+            off += scanline_width;
+            data_rgba[offset + 3] = scanline_buffer[i + off];
+            offset += 4;
+          }
+        }
+
+        return data_rgba;
+      };
+
+      const RGBEByteToRGBHalf = (src, sOff, dst, dOff) => {
+        const e = src[sOff + 3];
+        const scale = Math.pow(2.0, e - 128.0) / 255.0;
+        dst[dOff] = DataUtils.toHalfFloat(Math.min(src[sOff] * scale, 65504));
+        dst[dOff + 1] = DataUtils.toHalfFloat(Math.min(src[sOff + 1] * scale, 65504));
+        dst[dOff + 2] = DataUtils.toHalfFloat(Math.min(src[sOff + 2] * scale, 65504));
+        dst[dOff + 3] = DataUtils.toHalfFloat(1);
+      };
+
+      const byteArray = new Uint8Array(buffer);
+      byteArray.pos = 0;
+      const header = RGBE_ReadHeader(byteArray);
+
+      const w = header.width,
+        h = header.height,
+        image_rgba_data = RGBE_ReadPixels_RLE(byteArray.subarray(byteArray.pos), w, h);
+
+      const numPixels = image_rgba_data.length / 4;
+      const halfArray = new Uint16Array(numPixels * 4);
+
+      for (let j = 0; j < numPixels; j++) {
+        RGBEByteToRGBHalf(image_rgba_data, j * 4, halfArray, j * 4);
+      }
+
+      return {
+        width: w,
+        height: h,
+        data: halfArray,
+        header: header.string,
+        gamma: header.gamma,
+        exposure: header.exposure,
+        type: this.type
+      };
+    }
+  }
+
+  window.RGBELoader = RGBELoader;
+})();
