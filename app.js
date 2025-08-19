@@ -1,123 +1,93 @@
-const THREE = window.THREE;
+export default function init({ THREE, CANNON, RGBELoader }) {
+  const canvas = document.getElementById('marble-canvas');
 
-/**
- * RGBELoader with real decoding logic — compatible with direct browser use.
- * Source adapted from three.js r160
- */
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setClearColor(0xeeeeee);
 
-class RGBELoader extends THREE.DataTextureLoader {
-	constructor(manager) {
-		super(manager);
-		this.type = THREE.FloatType;
-	}
+  const scene = new THREE.Scene();
 
-	setDataType(type) {
-		this.type = type;
-		return this;
-	}
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 3, 8);
 
-	parse(buffer) {
-		const byteArray = new Uint8Array(buffer);
-		const header = this._parseHeader(byteArray);
+  // Lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+  dirLight.position.set(5, 10, 5);
+  scene.add(dirLight);
 
-		const width = header.width;
-		const height = header.height;
+  // Physics
+  const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 
-		const imageData = this._readPixels(byteArray.subarray(header.dataPosition), width, height);
-		const data = new Float32Array(4 * width * height);
+  const marbleMaterial = new CANNON.Material();
+  const groundMaterial = new CANNON.Material();
+  const contactMaterial = new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
+    friction: 0.4,
+    restitution: 0.6,
+  });
+  world.addContactMaterial(contactMaterial);
 
-		for (let i = 0; i < width * height; i++) {
-			data[4 * i] = imageData[i][0];
-			data[4 * i + 1] = imageData[i][1];
-			data[4 * i + 2] = imageData[i][2];
-			data[4 * i + 3] = 1;
-		}
+  const groundBody = new CANNON.Body({
+    mass: 0,
+    shape: new CANNON.Plane(),
+    material: groundMaterial,
+  });
+  groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+  world.addBody(groundBody);
 
-		const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, this.type);
-		texture.flipY = true;
-		texture.needsUpdate = true;
+  // HDR environment setup
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  pmremGenerator.compileEquirectangularShader();
 
-		return texture;
-	}
+  new RGBELoader()
+    .setDataType(THREE.HalfFloatType)
+    .load('assets/zebra.hdr', function (hdrTexture) {
+      const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
+      scene.environment = envMap;
+      hdrTexture.dispose();
+      pmremGenerator.dispose();
 
-	_parseHeader(buffer) {
-		const decoder = new TextDecoder();
-		const headerStr = decoder.decode(buffer.subarray(0, 512));
-		const lines = headerStr.split('\n');
+      // Load marble texture
+      const texture = new THREE.TextureLoader().load('assets/marble1.png');
+      texture.colorSpace = THREE.SRGBColorSpace;
 
-		let width = 0;
-		let height = 0;
-		let foundFormat = false;
-		let dataPosition = 0;
+      const material = new THREE.MeshPhysicalMaterial({
+        map: texture,
+        transparent: true,
+        roughness: 0.1,
+        metalness: 0,
+        transmission: 0.9,
+        thickness: 0.5,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.01,
+        envMapIntensity: 2.5,
+      });
 
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			if (line.startsWith('FORMAT=')) {
-				foundFormat = true;
-			}
-			if (line.match(/-Y (\d+) \+X (\d+)/)) {
-				const match = line.match(/-Y (\d+) \+X (\d+)/);
-				height = parseInt(match[1], 10);
-				width = parseInt(match[2], 10);
-				dataPosition = headerStr.indexOf(line) + line.length + 1;
-				break;
-			}
-		}
+      const geometry = new THREE.SphereGeometry(1, 64, 64);
+      const marbleMesh = new THREE.Mesh(geometry, material);
+      marbleMesh.castShadow = true;
+      scene.add(marbleMesh);
 
-		if (!foundFormat || !width || !height) {
-			throw new Error('Invalid HDR header.');
-		}
+      const marbleBody = new CANNON.Body({
+        mass: 3,
+        shape: new CANNON.Sphere(1),
+        position: new CANNON.Vec3(0, 5, 0),
+        material: marbleMaterial,
+      });
+      marbleBody.angularDamping = 0.4;
+      marbleBody.linearDamping = 0.1;
+      world.addBody(marbleBody);
 
-		return { width, height, dataPosition };
-	}
+      // Animate
+      function animate() {
+        requestAnimationFrame(animate);
+        world.step(1 / 60);
+        marbleMesh.position.copy(marbleBody.position);
+        marbleMesh.quaternion.copy(marbleBody.quaternion);
+        renderer.render(scene, camera);
+      }
 
-	_readPixels(buffer, width, height) {
-		const rgbe = new Uint8Array(4);
-		let offset = 0;
-		const scanlineWidth = width;
-		const numScanlines = height;
-		const data = [];
-
-		for (let j = 0; j < numScanlines; j++) {
-			offset += 4; // skip scanline header
-
-			const scanline = [[], [], [], []];
-			for (let i = 0; i < 4; i++) {
-				let pos = 0;
-				while (pos < scanlineWidth) {
-					const count = buffer[offset++];
-					if (count > 128) {
-						const value = buffer[offset++];
-						for (let k = 0; k < count - 128; k++) {
-							scanline[i][pos++] = value;
-						}
-					} else {
-						for (let k = 0; k < count; k++) {
-							scanline[i][pos++] = buffer[offset++];
-						}
-					}
-				}
-			}
-
-			for (let i = 0; i < scanlineWidth; i++) {
-				rgbe[0] = scanline[0][i];
-				rgbe[1] = scanline[1][i];
-				rgbe[2] = scanline[2][i];
-				rgbe[3] = scanline[3][i];
-
-				data.push(this._rgbeToFloat(rgbe));
-			}
-		}
-		return data;
-	}
-
-	_rgbeToFloat(rgbe) {
-		if (rgbe[3]) {
-			const f = Math.pow(2.0, rgbe[3] - 136);
-			return [rgbe[0] * f / 255, rgbe[1] * f / 255, rgbe[2] * f / 255];
-		}
-		return [0, 0, 0];
-	}
+      animate();
+    });
 }
-
-window.RGBELoader = RGBELoader;
