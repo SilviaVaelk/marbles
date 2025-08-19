@@ -454,4 +454,5 @@ load(url, onLoad, onProgress, onError) {
 
 }
 
-export { RGBELoader };
+window.RGBELoader = RGBELoader;
+
