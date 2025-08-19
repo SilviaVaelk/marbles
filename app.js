@@ -1,4 +1,4 @@
-export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
+export default function init({ THREE, CANNON, RGBELoader }) {
   const canvas = document.getElementById('marble-canvas');
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -11,13 +11,13 @@ export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(0, 3, 8);
 
-  // Lights
+  // Lighting
   scene.add(new THREE.AmbientLight(0xffffff, 0.5));
   const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
   dirLight.position.set(5, 10, 5);
   scene.add(dirLight);
 
-  // Physics world
+  // Physics
   const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 
   const marbleMaterial = new CANNON.Material();
@@ -36,28 +36,28 @@ export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
 
-  // HDRI setup
+  // HDR environment setup
   const pmremGenerator = new THREE.PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
 
   new RGBELoader()
-    .setDataType(THREE.FloatType)
+    .setDataType(THREE.HalfFloatType)
     .load('assets/zebra.hdr', function (hdrTexture) {
       const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
       scene.environment = envMap;
       hdrTexture.dispose();
       pmremGenerator.dispose();
 
-      // Load marble texture (PNG with transparency)
+      // Load marble texture
       const texture = new THREE.TextureLoader().load('assets/marble1.png');
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const material = new THREE.MeshPhysicalMaterial({
         map: texture,
-        transparent: true,       // ✅ allow transparency
+        transparent: true,
         roughness: 0.1,
         metalness: 0,
-        transmission: 0.9,       // ✅ allow light to pass through
+        transmission: 0.9,
         thickness: 0.5,
         clearcoat: 1.0,
         clearcoatRoughness: 0.01,
@@ -69,16 +69,6 @@ export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
       marbleMesh.castShadow = true;
       scene.add(marbleMesh);
 
-      // Load and add 3D object inside marble
-      const loader = new GLTFLoader();
-      loader.load('assets/inner-model.glb', (gltf) => {
-        const inner = gltf.scene;
-        inner.scale.set(0.4, 0.4, 0.4);
-        inner.position.set(0, 0, 0);
-        marbleMesh.add(inner);  // ✅ attached inside the marble
-      });
-
-      // Physics body
       const marbleBody = new CANNON.Body({
         mass: 3,
         shape: new CANNON.Sphere(1),
