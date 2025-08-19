@@ -20,16 +20,27 @@
 <body>
   <canvas id="marble-canvas"></canvas>
 
-  <!-- Load core libraries -->
-<script type="module">
-  import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-  import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
-  import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/RGBELoader.js';
-  import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+  <!-- Load core libraries and expose globally -->
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+    import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
-  import init from './app.js';
+    window.THREE = THREE;
+    window.CANNON = CANNON;
+  </script>
 
-  init({ THREE, CANNON, RGBELoader, GLTFLoader });
-</script>
+  <!-- Load patched RGBELoader -->
+  <script type="module" src="./loaders/RGBELoader.js"></script>
+
+  <!-- Start the app AFTER everything is defined -->
+  <script type="module">
+    import init from './app.js';
+
+    init({
+      THREE: window.THREE,
+      CANNON: window.CANNON,
+      RGBELoader: window.RGBELoader,
+    });
+  </script>
 </body>
 </html>
