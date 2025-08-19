@@ -1,4 +1,4 @@
-export default function init({ THREE, CANNON, RGBELoader }) {
+export default function init({ THREE, CANNON, RGBELoader, GLTFLoader }) {
   const canvas = document.getElementById('marble-canvas');
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -48,14 +48,17 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       hdrTexture.dispose();
       pmremGenerator.dispose();
 
-      // Load marble texture
+      // Load marble texture (PNG with transparency)
       const texture = new THREE.TextureLoader().load('assets/marble1.png');
       texture.colorSpace = THREE.SRGBColorSpace;
 
       const material = new THREE.MeshPhysicalMaterial({
         map: texture,
-        roughness: 0.05,
-        metalness: 0.5,
+        transparent: true,       // ✅ allow transparency
+        roughness: 0.1,
+        metalness: 0,
+        transmission: 0.9,       // ✅ allow light to pass through
+        thickness: 0.5,
         clearcoat: 1.0,
         clearcoatRoughness: 0.01,
         envMapIntensity: 2.5,
@@ -66,6 +69,16 @@ export default function init({ THREE, CANNON, RGBELoader }) {
       marbleMesh.castShadow = true;
       scene.add(marbleMesh);
 
+      // Load and add 3D object inside marble
+      const loader = new GLTFLoader();
+      loader.load('assets/innerModel.glb', (gltf) => {
+        const inner = gltf.scene;
+        inner.scale.set(0.4, 0.4, 0.4);
+        inner.position.set(0, 0, 0);
+        marbleMesh.add(inner);  // ✅ attached inside the marble
+      });
+
+      // Physics body
       const marbleBody = new CANNON.Body({
         mass: 3,
         shape: new CANNON.Sphere(1),
