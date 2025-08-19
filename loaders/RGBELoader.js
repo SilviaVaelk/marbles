@@ -418,32 +418,39 @@ class RGBELoader extends DataTextureLoader {
 
 	}
 
-	load( url, onLoad, onProgress, onError ) {
+load(url, onLoad, onProgress, onError) {
+  return super.load(
+    url,
+    (buffer) => {
+      const texData = this.parse(buffer);
+      const texture = new THREE.DataTexture(
+        texData.data,
+        texData.width,
+        texData.height,
+        THREE.RGBAFormat,
+        this.type
+      );
 
-		function onLoadCallback( texture, texData ) {
+      texture.image = {
+        data: texData.data,
+        width: texData.width,
+        height: texData.height,
+      };
 
-			switch ( texture.type ) {
+      texture.colorSpace = THREE.LinearSRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.flipY = true;
+      texture.needsUpdate = true;
 
-				case FloatType:
-				case HalfFloatType:
+      onLoad(texture);
+    },
+    onProgress,
+    onError
+  );
+}
 
-					texture.colorSpace = LinearSRGBColorSpace;
-					texture.minFilter = LinearFilter;
-					texture.magFilter = LinearFilter;
-					texture.generateMipmaps = false;
-					texture.flipY = true;
-
-					break;
-
-			}
-
-			if ( onLoad ) onLoad( texture, texData );
-
-		}
-
-		return super.load( url, onLoadCallback, onProgress, onError );
-
-	}
 
 }
 
