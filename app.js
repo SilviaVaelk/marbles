@@ -71,10 +71,10 @@ new RGBELoader()
     const material = new THREE.MeshPhysicalMaterial({
       map: texture,
       transparent: true,
-      roughness: 0.1,
+      roughness: 0.5,
       metalness: 0,
-      transmission: 0.9,
-      thickness: 0.5,
+      transmission: 0.8,
+      thickness: 2.5,
       clearcoat: 1.0,
       clearcoatRoughness: 0.01,
       envMapIntensity: 2.5,
@@ -167,7 +167,7 @@ new RGBELoader()
       hovered = intersects.length > 0;
 
 if (hovered) {
-  rotator.rotation.y += 0.01;      // inner GLB
+  rotator.rotation.y += 0.005;      // inner GLB
   outerGroup.rotation.y += 0.005;  // outer marble
 }
  else {
