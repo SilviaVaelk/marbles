@@ -127,18 +127,38 @@ const material = new THREE.MeshPhysicalMaterial({
     const loader = new GLTFLoader();
     loader.load('assets/inner-model.glb', (gltf) => {
       const innerObject = gltf.scene;
-      innerObject.scale.set(10, 10, 10);
-      innerObject.position.set(0, 0, 0);
+      const marbleRadius = 1; // since sphere geometry is radius 1
 
-      innerObject.traverse(child => {
-        if (child.isMesh) {
-          child.material.envMapIntensity = 2.5;
-          child.material.needsUpdate = true;
-        }
-      });
+const loader = new GLTFLoader();
+loader.load('assets/inner-model.glb', (gltf) => {
+  const innerObject = gltf.scene;
 
-      rotator.add(innerObject); // add to child group
-    });
+  // Compute bounding box
+  const box = new THREE.Box3().setFromObject(innerObject);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const maxSize = Math.max(size.x, size.y, size.z);
+
+  // Calculate scale to fit inside sphere with some padding (e.g. 90%)
+  const scale = (marbleRadius * 2 * 0.9) / maxSize;
+  innerObject.scale.setScalar(scale);
+
+  // Center the model
+  const center = new THREE.Vector3();
+  box.getCenter(center);
+  innerObject.position.sub(center); // shift to origin
+
+  // Adjust materials
+  innerObject.traverse(child => {
+    if (child.isMesh) {
+      child.material.envMapIntensity = 2.5;
+      child.material.needsUpdate = true;
+    }
+  });
+
+  rotator.add(innerObject);
+});
+
 
     // Physics body
     const marbleBody = new CANNON.Body({
