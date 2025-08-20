@@ -11,7 +11,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff);
-renderer.toneMappingExposure = 1.5; // try values between 1.2 - 2.0
+renderer.toneMappingExposure = 2; // try values between 1.2 - 2.0
 
 
 const scene = new THREE.Scene();
@@ -74,7 +74,7 @@ const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
 normalMap.colorSpace = THREE.NoColorSpace; // normals are not color data
 
 const material = new THREE.MeshPhysicalMaterial({
-  color: new THREE.Color('#2B1CFF'),
+  color: new THREE.Color('#FFE364'),
   roughness: 0.3,
   metalness: 0,
   transmission: 0.9,
