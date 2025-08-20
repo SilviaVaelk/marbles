@@ -73,11 +73,11 @@ normalMap.colorSpace = THREE.NoColorSpace; // normals are not color data
 
 const material = new THREE.MeshPhysicalMaterial({
   color: new THREE.Color('#2B1CFF'),
-  roughness: 0.1,
+  roughness: 0.3,
   metalness: 0,
   transmission: 0.9,
   transparent: true,
-  opacity: 0.9,
+  opacity: 0.8,
   thickness: 2.5,
   clearcoat: 1.0,
   clearcoatRoughness: 0.01,
