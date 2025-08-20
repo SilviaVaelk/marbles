@@ -24,7 +24,7 @@ class RGBELoader extends THREE.DataTextureLoader {
 		const height = header.height;
 
 		const imageData = this._readPixels(byteArray.subarray(header.dataPosition), width, height);
-		const data = new Float32Array(4 * width * height);
+		const data = new Uint8Array(4 * width * height);
 
 		for (let i = 0; i < width * height; i++) {
 			data[4 * i] = imageData[i][0];
