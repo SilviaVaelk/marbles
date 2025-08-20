@@ -82,8 +82,6 @@ loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/m
   marbleMesh.add(innerObject);
 });
 
-    });
-
     // Add physics body
     const marbleBody = new CANNON.Body({
       mass: 3,
