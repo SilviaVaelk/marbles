@@ -17,7 +17,8 @@ const scene = new THREE.Scene();
 let hovered = false;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-let marbleMesh; // ← Now global
+let marbleMesh;
+let rotator = new THREE.Group(); // <-- child group for visual rotation
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 3, 8);
@@ -56,7 +57,7 @@ const pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
 
 new RGBELoader()
-  .setDataType(THREE.HalfFloatType)
+  .setDataType(THREE.UnsignedByteType) // ✅ Avoid HalfFloat error
   .load('assets/zebra.hdr', function (hdrTexture) {
     const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
     scene.environment = envMap;
@@ -79,43 +80,7 @@ new RGBELoader()
       envMapIntensity: 2.5,
     });
 
-    // Create marble mesh globally
-    marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
-    marbleMesh.castShadow = true;
-    scene.add(marbleMesh);
-
-    // Add light inside marble
-    const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
-    innerLight.position.set(0, 0, 0);
-    marbleMesh.add(innerLight);
-
-    // Load inner GLB model
-    const loader = new GLTFLoader();
-    loader.load('assets/DamagedHelmet.glb', (gltf) => {
-      const innerObject = gltf.scene;
-      innerObject.scale.set(0.4, 0.4, 0.4);
-      innerObject.position.set(0, 0, 0);
-      innerObject.traverse(child => {
-        if (child.isMesh) {
-          child.material.envMapIntensity = 2.5;
-          child.material.needsUpdate = true;
-        }
-      });
-      marbleMesh.add(innerObject);
-    });
-
-    // Physics body
-    const marbleBody = new CANNON.Body({
-      mass: 3,
-      shape: new CANNON.Sphere(1),
-      position: new CANNON.Vec3(0, 5, 0),
-      material: marbleMaterial,
-    });
-    marbleBody.angularDamping = 0.4;
-    marbleBody.linearDamping = 0.1;
-    world.addBody(marbleBody);
-
-    // Material GUI
+    // GUI
     const gui = new GUI();
     const materialParams = {
       roughness: material.roughness,
@@ -133,7 +98,46 @@ new RGBELoader()
     gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
     gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
 
-    // Hover and click listeners
+    // Marble mesh and rotator
+    marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
+    marbleMesh.castShadow = true;
+    marbleMesh.add(rotator); // <- add child for inner contents
+    scene.add(marbleMesh);
+
+    // Light inside marble
+    const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
+    innerLight.position.set(0, 0, 0);
+    rotator.add(innerLight);
+
+    // Load GLB model
+    const loader = new GLTFLoader();
+    loader.load('assets/DamagedHelmet.glb', (gltf) => {
+      const innerObject = gltf.scene;
+      innerObject.scale.set(0.4, 0.4, 0.4);
+      innerObject.position.set(0, 0, 0);
+
+      innerObject.traverse(child => {
+        if (child.isMesh) {
+          child.material.envMapIntensity = 2.5;
+          child.material.needsUpdate = true;
+        }
+      });
+
+      rotator.add(innerObject); // add to child group
+    });
+
+    // Physics body
+    const marbleBody = new CANNON.Body({
+      mass: 3,
+      shape: new CANNON.Sphere(1),
+      position: new CANNON.Vec3(0, 5, 0),
+      material: marbleMaterial,
+    });
+    marbleBody.angularDamping = 0.4;
+    marbleBody.linearDamping = 0.1;
+    world.addBody(marbleBody);
+
+    // Mouse Events
     window.addEventListener('mousemove', (event) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -147,10 +151,11 @@ new RGBELoader()
       }
     });
 
-    // Animate loop
+    // Animation loop
     function animate() {
       requestAnimationFrame(animate);
       world.step(1 / 60);
+
       marbleMesh.position.copy(marbleBody.position);
       marbleMesh.quaternion.copy(marbleBody.quaternion);
 
@@ -159,7 +164,7 @@ new RGBELoader()
       hovered = intersects.length > 0;
 
       if (hovered) {
-        marbleMesh.rotation.y += 0.01;
+        rotator.rotation.y += 0.01; // ← rotate visual group only
         document.body.style.cursor = 'pointer';
       } else {
         document.body.style.cursor = 'default';
