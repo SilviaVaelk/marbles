@@ -150,20 +150,29 @@ gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIn
     marbleBody.linearDamping = 0.1;
     world.addBody(marbleBody);
 
-    function animate() {
-      requestAnimationFrame(animate);
-      world.step(1 / 60);
-      marbleMesh.position.copy(marbleBody.position);
-      marbleMesh.quaternion.copy(marbleBody.quaternion);
-      controls.update();
-      renderer.render(scene, camera);
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(marbleMesh);
-      hovered = intersects.length > 0;
-      if (hovered) {
-      marbleMesh.rotation.y += 0.01;
+function animate() {
+  requestAnimationFrame(animate);
+  world.step(1 / 60);
+
+  marbleMesh.position.copy(marbleBody.position);
+  marbleMesh.quaternion.copy(marbleBody.quaternion);
+
+  // 👇 Hover rotation logic
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(marbleMesh);
+  hovered = intersects.length > 0;
+
+  if (hovered) {
+    marbleMesh.rotation.y += 0.01;
+    document.body.style.cursor = 'pointer';
+  } else {
+    document.body.style.cursor = 'default';
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
 }
-}
+
 
     animate();
 
