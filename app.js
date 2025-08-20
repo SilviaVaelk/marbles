@@ -65,12 +65,12 @@ new RGBELoader()
     pmremGenerator.dispose();
 
     // Marble appearance
-    const texture = new THREE.TextureLoader().load('assets/dotted.svg');
-    texture.colorSpace = THREE.SRGBColorSpace;
+    //const texture = new THREE.TextureLoader().load('assets/dotted.svg');
+    //texture.colorSpace = THREE.SRGBColorSpace;
 
 const material = new THREE.MeshPhysicalMaterial({
   map: texture,
-  color: new THREE.Color('2B1CFF'), 
+  color: new THREE.Color('#2B1CFF'), 
   roughness: 0.1,
   metalness: 0,
   transmission: 0.9,
