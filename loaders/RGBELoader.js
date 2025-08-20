@@ -1,4 +1,4 @@
-const THREE = window.THREE;
+import * as THREE from 'three';
 
 /**
  * RGBELoader with real decoding logic — compatible with direct browser use.
@@ -120,4 +120,4 @@ class RGBELoader extends THREE.DataTextureLoader {
 	}
 }
 
-window.RGBELoader = RGBELoader;
+export { RGBELoader };
