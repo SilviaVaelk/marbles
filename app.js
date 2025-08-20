@@ -5,13 +5,6 @@ import { RGBELoader } from './loaders/RGBELoader.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.18/+esm';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.1;
-controls.target.set(0, 1, 0); // Focus on the marble
-
-
-
 const canvas = document.getElementById('marble-canvas');
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -23,6 +16,11 @@ const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 3, 8);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.1;
+controls.target.set(0, 1, 0); // Focus on the marble
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -138,9 +136,10 @@ gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIn
       world.step(1 / 60);
       marbleMesh.position.copy(marbleBody.position);
       marbleMesh.quaternion.copy(marbleBody.quaternion);
+      controls.update();
       renderer.render(scene, camera);
     }
 
     animate();
-    controls.update();
+
   });
