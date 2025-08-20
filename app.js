@@ -23,7 +23,7 @@ let marbleMesh;
 let rotator = new THREE.Group(); // <-- child group for visual rotation
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 3, 8);
+camera.position.set(0, 1.5, 2);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
