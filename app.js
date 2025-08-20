@@ -129,10 +129,6 @@ const material = new THREE.MeshPhysicalMaterial({
       const innerObject = gltf.scene;
       const marbleRadius = 1; // since sphere geometry is radius 1
 
-const loader = new GLTFLoader();
-loader.load('assets/inner-model.glb', (gltf) => {
-  const innerObject = gltf.scene;
-
   // Compute bounding box
   const box = new THREE.Box3().setFromObject(innerObject);
   const size = new THREE.Vector3();
