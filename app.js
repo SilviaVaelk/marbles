@@ -75,11 +75,13 @@ new RGBELoader()
 
     // Load GLTF into the marble
     const loader = new GLTFLoader();
-    loader.load('assets/CUV-Airbrush.glb', (gltf) => {
-      const innerObject = gltf.scene;
-      innerObject.scale.set(0.4, 0.4, 0.4);
-      innerObject.position.set(0, 0, 0);
-      marbleMesh.add(innerObject);
+loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', (gltf) => {
+  const innerObject = gltf.scene;
+  innerObject.scale.set(0.4, 0.4, 0.4);
+  innerObject.position.set(0, 0, 0);
+  marbleMesh.add(innerObject);
+});
+
     });
 
     // Add physics body
