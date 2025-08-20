@@ -68,17 +68,18 @@ new RGBELoader()
     const texture = new THREE.TextureLoader().load('assets/dotted.svg');
     texture.colorSpace = THREE.SRGBColorSpace;
 
-    const material = new THREE.MeshPhysicalMaterial({
-      map: texture,
-      transparent: true,
-      roughness: 0.1,
-      metalness: 0,
-      transmission: 0.8,
-      thickness: 3,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.01,
-      envMapIntensity: 2.5,
-    });
+const material = new THREE.MeshPhysicalMaterial({
+  map: texture,
+  color: new THREE.Color('2B1CFF'), 
+  roughness: 0.1,
+  metalness: 0,
+  transmission: 0.9,
+  thickness: 0.5,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.01,
+  envMapIntensity: 2.5,
+});
+
 
     // GUI
     const gui = new GUI();
