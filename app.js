@@ -68,17 +68,23 @@ new RGBELoader()
     // const texture = new THREE.TextureLoader().load('assets/dotted.svg');
     // texture.colorSpace = THREE.SRGBColorSpace;
 
+const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
+normalMap.colorSpace = THREE.NoColorSpace; // normals are not color data
+
 const material = new THREE.MeshPhysicalMaterial({
-//  map: texture,
-  color: new THREE.Color('#2B1CFF'), 
+  color: new THREE.Color('#2B1CFF'),
   roughness: 0.1,
   metalness: 0,
   transmission: 0.9,
-  thickness: 2.5,
+  transparent: true,
+  opacity: 0.5,
+  thickness: 0.5,
   clearcoat: 1.0,
   clearcoatRoughness: 0.01,
   envMapIntensity: 2.5,
+  normalMap: normalMap,
 });
+
 
 
     // GUI
