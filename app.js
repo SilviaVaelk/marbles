@@ -3,6 +3,13 @@ import * as CANNON from 'cannon-es';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './loaders/RGBELoader.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.18/+esm';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.1;
+controls.target.set(0, 1, 0); // Focus on the marble
+
 
 
 const canvas = document.getElementById('marble-canvas');
@@ -135,4 +142,5 @@ gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIn
     }
 
     animate();
+    controls.update();
   });
