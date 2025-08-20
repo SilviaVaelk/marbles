@@ -127,7 +127,7 @@ const material = new THREE.MeshPhysicalMaterial({
     const loader = new GLTFLoader();
     loader.load('assets/inner-model.glb', (gltf) => {
       const innerObject = gltf.scene;
-      innerObject.scale.set(0.4, 0.4, 0.4);
+      innerObject.scale.set(10, 10, 10);
       innerObject.position.set(0, 0, 0);
 
       innerObject.traverse(child => {
