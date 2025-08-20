@@ -73,7 +73,7 @@ new RGBELoader()
     normalMap.colorSpace = THREE.NoColorSpace;
 
     const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#000000'),
+      color: new THREE.Color('#773DFF'),
       roughness: 0.3,
       metalness: 0,
       transmission: 0.9,
