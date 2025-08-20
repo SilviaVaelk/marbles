@@ -66,6 +66,7 @@ new RGBELoader()
     scene.environment = envMap;
     hdrTexture.dispose();
     pmremGenerator.dispose();
+     });
 
     // Normal map for marble
     const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
