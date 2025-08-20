@@ -17,7 +17,7 @@ const scene = new THREE.Scene();
 let hovered = false;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-
+let marbleMesh; // ← Now global
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 3, 8);
@@ -25,7 +25,7 @@ camera.position.set(0, 3, 8);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.1;
-controls.target.set(0, 1, 0); // Focus on the marble
+controls.target.set(0, 1, 0);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
@@ -79,67 +79,32 @@ new RGBELoader()
       envMapIntensity: 2.5,
     });
 
-window.addEventListener('mousemove', (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-});
-
-window.addEventListener('click', () => {
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(marbleMesh);
-  if (intersects.length > 0) {
-    window.open('https://example.com', '_blank');
-  }
-});
-
-    
-    const gui = new GUI();
-    const materialParams = {
-    roughness: material.roughness,
-    metalness: material.metalness,
-    transmission: material.transmission,
-    clearcoat: material.clearcoat,
-    clearcoatRoughness: material.clearcoatRoughness,
-    envMapIntensity: material.envMapIntensity
-    };
-
-gui.add(materialParams, 'roughness', 0, 1).onChange(v => material.roughness = v);
-gui.add(materialParams, 'metalness', 0, 1).onChange(v => material.metalness = v);
-gui.add(materialParams, 'transmission', 0, 1).onChange(v => material.transmission = v);
-gui.add(materialParams, 'clearcoat', 0, 1).onChange(v => material.clearcoat = v);
-gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
-gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
-
-
-    const geometry = new THREE.SphereGeometry(1, 64, 64);
-    const marbleMesh = new THREE.Mesh(geometry, material);
+    // Create marble mesh globally
+    marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
     marbleMesh.castShadow = true;
     scene.add(marbleMesh);
 
-    // Add light inside marble (optional)
+    // Add light inside marble
     const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
     innerLight.position.set(0, 0, 0);
     marbleMesh.add(innerLight);
 
-    // Load GLB model inside
+    // Load inner GLB model
     const loader = new GLTFLoader();
     loader.load('assets/DamagedHelmet.glb', (gltf) => {
       const innerObject = gltf.scene;
       innerObject.scale.set(0.4, 0.4, 0.4);
       innerObject.position.set(0, 0, 0);
-
-      // Optional: adjust materials
       innerObject.traverse(child => {
         if (child.isMesh) {
           child.material.envMapIntensity = 2.5;
           child.material.needsUpdate = true;
         }
       });
-
       marbleMesh.add(innerObject);
     });
 
-    // Add physics body
+    // Physics body
     const marbleBody = new CANNON.Body({
       mass: 3,
       shape: new CANNON.Sphere(1),
@@ -150,30 +115,59 @@ gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIn
     marbleBody.linearDamping = 0.1;
     world.addBody(marbleBody);
 
-function animate() {
-  requestAnimationFrame(animate);
-  world.step(1 / 60);
+    // Material GUI
+    const gui = new GUI();
+    const materialParams = {
+      roughness: material.roughness,
+      metalness: material.metalness,
+      transmission: material.transmission,
+      clearcoat: material.clearcoat,
+      clearcoatRoughness: material.clearcoatRoughness,
+      envMapIntensity: material.envMapIntensity
+    };
 
-  marbleMesh.position.copy(marbleBody.position);
-  marbleMesh.quaternion.copy(marbleBody.quaternion);
+    gui.add(materialParams, 'roughness', 0, 1).onChange(v => material.roughness = v);
+    gui.add(materialParams, 'metalness', 0, 1).onChange(v => material.metalness = v);
+    gui.add(materialParams, 'transmission', 0, 1).onChange(v => material.transmission = v);
+    gui.add(materialParams, 'clearcoat', 0, 1).onChange(v => material.clearcoat = v);
+    gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
+    gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
 
-  // 👇 Hover rotation logic
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(marbleMesh);
-  hovered = intersects.length > 0;
+    // Hover and click listeners
+    window.addEventListener('mousemove', (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    });
 
-  if (hovered) {
-    marbleMesh.rotation.y += 0.01;
-    document.body.style.cursor = 'pointer';
-  } else {
-    document.body.style.cursor = 'default';
-  }
+    window.addEventListener('click', () => {
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(marbleMesh);
+      if (intersects.length > 0) {
+        window.open('https://example.com', '_blank');
+      }
+    });
 
-  controls.update();
-  renderer.render(scene, camera);
-}
+    // Animate loop
+    function animate() {
+      requestAnimationFrame(animate);
+      world.step(1 / 60);
+      marbleMesh.position.copy(marbleBody.position);
+      marbleMesh.quaternion.copy(marbleBody.quaternion);
 
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(marbleMesh);
+      hovered = intersects.length > 0;
+
+      if (hovered) {
+        marbleMesh.rotation.y += 0.01;
+        document.body.style.cursor = 'pointer';
+      } else {
+        document.body.style.cursor = 'default';
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
 
     animate();
-
   });
