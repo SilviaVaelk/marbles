@@ -102,7 +102,10 @@ new RGBELoader()
     marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
     marbleMesh.castShadow = true;
     marbleMesh.add(rotator); // <- add child for inner contents
-    scene.add(marbleMesh);
+    const outerGroup = new THREE.Group();
+    outerGroup.add(marbleMesh);
+    scene.add(outerGroup);
+
 
     // Light inside marble
     const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
@@ -163,10 +166,11 @@ new RGBELoader()
       const intersects = raycaster.intersectObject(marbleMesh);
       hovered = intersects.length > 0;
 
-      if (hovered) {
-        rotator.rotation.y += 0.01; // ← rotate visual group only
-        document.body.style.cursor = 'pointer';
-      } else {
+if (hovered) {
+  rotator.rotation.y += 0.01;      // inner GLB
+  outerGroup.rotation.y += 0.005;  // outer marble
+}
+ else {
         document.body.style.cursor = 'default';
       }
 
