@@ -75,7 +75,7 @@ new RGBELoader()
 
     // Load GLTF into the marble
     const loader = new GLTFLoader();
-    loader.load('assets/inner-model.glb', (gltf) => {
+    loader.load('assets/CUV-Airbrush.glb', (gltf) => {
       const innerObject = gltf.scene;
       innerObject.scale.set(0.4, 0.4, 0.4);
       innerObject.position.set(0, 0, 0);
