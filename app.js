@@ -119,7 +119,7 @@ new RGBELoader()
 
     // Load GLB model
     const loader = new GLTFLoader();
-    loader.load('assets/inner-model-3.glb', (gltf) => {
+    loader.load('assets/inner-model-4.glb', (gltf) => {
       const innerObject = gltf.scene;
 
       // Compute bounding box
