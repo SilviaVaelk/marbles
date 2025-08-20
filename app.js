@@ -11,8 +11,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff);
-renderer.toneMappingExposure = 1.8; // try values between 1.2 - 2.0
-
+renderer.toneMappingExposure = 1.8;
 
 const scene = new THREE.Scene();
 
@@ -20,14 +19,14 @@ let hovered = false;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let marbleMesh;
-let rotator = new THREE.Group(); // <-- child group for visual rotation
+let rotator = new THREE.Group();
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 1.5, 3);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.minDistance = 2;   // prevent zooming in too close
-controls.maxDistance = 5;   // prevent zooming out too far
+controls.minDistance = 2;
+controls.maxDistance = 5;
 controls.enableDamping = true;
 controls.dampingFactor = 0.1;
 controls.target.set(0, 1, 0);
@@ -61,37 +60,32 @@ const pmremGenerator = new THREE.PMREMGenerator(renderer);
 pmremGenerator.compileEquirectangularShader();
 
 new RGBELoader()
-  .setDataType(THREE.UnsignedByteType) // ✅ Avoid HalfFloat error
+  .setDataType(THREE.UnsignedByteType)
   .load('assets/zebra.hdr', function (hdrTexture) {
     const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
     scene.environment = envMap;
     hdrTexture.dispose();
     pmremGenerator.dispose();
 
-    // Marble appearance
-    // const texture = new THREE.TextureLoader().load('assets/dotted.svg');
-    // texture.colorSpace = THREE.SRGBColorSpace;
+    // Normal map for marble
+    const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
+    normalMap.colorSpace = THREE.NoColorSpace;
 
-const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
-normalMap.colorSpace = THREE.NoColorSpace; // normals are not color data
+    const material = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color('#FFE364'),
+      roughness: 0.3,
+      metalness: 0,
+      transmission: 0.9,
+      transparent: true,
+      opacity: 0.8,
+      thickness: 2.5,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01,
+      envMapIntensity: 2.5,
+      normalMap: normalMap,
+    });
 
-const material = new THREE.MeshPhysicalMaterial({
-  color: new THREE.Color('#FFE364'),
-  roughness: 0.3,
-  metalness: 0,
-  transmission: 0.9,
-  transparent: true,
-  opacity: 0.8,
-  thickness: 2.5,
-  clearcoat: 1.0,
-  clearcoatRoughness: 0.01,
-  envMapIntensity: 2.5,
-  normalMap: normalMap,
-});
-
-
-
-    // GUI
+    // GUI controls
     const gui = new GUI();
     const materialParams = {
       roughness: material.roughness,
@@ -109,16 +103,15 @@ const material = new THREE.MeshPhysicalMaterial({
     gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
     gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
 
-    // Marble mesh and rotator
+    // Marble
     marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
     marbleMesh.castShadow = true;
-    marbleMesh.add(rotator); // <- add child for inner contents
+    marbleMesh.add(rotator);
     const outerGroup = new THREE.Group();
     outerGroup.add(marbleMesh);
     scene.add(outerGroup);
 
-
-    // Light inside marble
+    // Inner light
     const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
     innerLight.position.set(0, 0, 0);
     rotator.add(innerLight);
@@ -127,34 +120,32 @@ const material = new THREE.MeshPhysicalMaterial({
     const loader = new GLTFLoader();
     loader.load('assets/inner-model.glb', (gltf) => {
       const innerObject = gltf.scene;
-      const marbleRadius = 1; // since sphere geometry is radius 1
 
-  // Compute bounding box
-  const box = new THREE.Box3().setFromObject(innerObject);
-  const size = new THREE.Vector3();
-  box.getSize(size);
-  const maxSize = Math.max(size.x, size.y, size.z);
+      // Compute bounding box
+      const box = new THREE.Box3().setFromObject(innerObject);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxSize = Math.max(size.x, size.y, size.z);
 
-  // Calculate scale to fit inside sphere with some padding (e.g. 90%)
-  const scale = (marbleRadius * 2 * 0.9) / maxSize;
-  innerObject.scale.setScalar(scale);
+      // Scale to fit inside sphere
+      const scale = (1 * 2 * 0.9) / maxSize;
+      innerObject.scale.setScalar(scale);
 
-  // Center the model
-  const center = new THREE.Vector3();
-  box.getCenter(center);
-  innerObject.position.sub(center); // shift to origin
+      // Center
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      innerObject.position.sub(center);
 
-  // Adjust materials
-  innerObject.traverse(child => {
-    if (child.isMesh) {
-      child.material.envMapIntensity = 2.5;
-      child.material.needsUpdate = true;
-    }
-  });
+      // Tweak materials
+      innerObject.traverse(child => {
+        if (child.isMesh) {
+          child.material.envMapIntensity = 2.5;
+          child.material.needsUpdate = true;
+        }
+      });
 
-  rotator.add(innerObject);
-});
-
+      rotator.add(innerObject);
+    });
 
     // Physics body
     const marbleBody = new CANNON.Body({
@@ -167,7 +158,7 @@ const material = new THREE.MeshPhysicalMaterial({
     marbleBody.linearDamping = 0.1;
     world.addBody(marbleBody);
 
-    // Mouse Events
+    // Mouse interaction
     window.addEventListener('mousemove', (event) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -181,7 +172,7 @@ const material = new THREE.MeshPhysicalMaterial({
       }
     });
 
-    // Animation loop
+    // Animation
     function animate() {
       requestAnimationFrame(animate);
       world.step(1 / 60);
@@ -193,11 +184,10 @@ const material = new THREE.MeshPhysicalMaterial({
       const intersects = raycaster.intersectObject(marbleMesh);
       hovered = intersects.length > 0;
 
-if (hovered) {
-  rotator.rotation.y += 0.005;      // inner GLB
-  outerGroup.rotation.y += 0.005;  // outer marble
-}
- else {
+      if (hovered) {
+        rotator.rotation.y += 0.005;
+        outerGroup.rotation.y += 0.005;
+      } else {
         document.body.style.cursor = 'default';
       }
 
