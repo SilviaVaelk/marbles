@@ -14,6 +14,11 @@ renderer.setClearColor(0xeeeeee);
 
 const scene = new THREE.Scene();
 
+let hovered = false;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 3, 8);
 
@@ -74,6 +79,20 @@ new RGBELoader()
       envMapIntensity: 2.5,
     });
 
+window.addEventListener('mousemove', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+});
+
+window.addEventListener('click', () => {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(marbleMesh);
+  if (intersects.length > 0) {
+    window.open('https://example.com', '_blank');
+  }
+});
+
+    
     const gui = new GUI();
     const materialParams = {
     roughness: material.roughness,
@@ -138,7 +157,13 @@ gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIn
       marbleMesh.quaternion.copy(marbleBody.quaternion);
       controls.update();
       renderer.render(scene, camera);
-    }
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(marbleMesh);
+      hovered = intersects.length > 0;
+      if (hovered) {
+      marbleMesh.rotation.y += 0.01;
+}
+}
 
     animate();
 
