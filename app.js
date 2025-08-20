@@ -66,14 +66,14 @@ new RGBELoader()
     scene.environment = envMap;
     hdrTexture.dispose();
     pmremGenerator.dispose();
-     });
+
 
     // Normal map for marble
     const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
     normalMap.colorSpace = THREE.NoColorSpace;
 
     const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#FFE364'),
+      color: new THREE.Color('#000000'),
       roughness: 0.3,
       metalness: 0,
       transmission: 0.9,
