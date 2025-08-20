@@ -73,7 +73,7 @@ new RGBELoader()
     normalMap.colorSpace = THREE.NoColorSpace;
 
     const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#CBFF3D'),
+      color: new THREE.Color('#fafafa'),
       roughness: 0.3,
       metalness: 0,
       transmission: 0.9,
@@ -119,7 +119,7 @@ new RGBELoader()
 
     // Load GLB model
     const loader = new GLTFLoader();
-    loader.load('assets/inner-model-2.glb', (gltf) => {
+    loader.load('assets/inner-model-3.glb', (gltf) => {
       const innerObject = gltf.scene;
 
       // Compute bounding box
