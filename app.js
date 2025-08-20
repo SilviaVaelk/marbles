@@ -11,7 +11,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff);
-renderer.toneMappingExposure = 1.2; // try values between 1.2 - 2.0
+renderer.toneMappingExposure = 1.8; // try values between 1.2 - 2.0
 
 
 const scene = new THREE.Scene();
@@ -23,10 +23,10 @@ let marbleMesh;
 let rotator = new THREE.Group(); // <-- child group for visual rotation
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1.5, 4);
+camera.position.set(0, 1.5, 3);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.minDistance = 1;   // prevent zooming in too close
+controls.minDistance = 2;   // prevent zooming in too close
 controls.maxDistance = 5;   // prevent zooming out too far
 controls.enableDamping = true;
 controls.dampingFactor = 0.1;
