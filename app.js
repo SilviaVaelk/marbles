@@ -11,7 +11,7 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0xffffff);
-renderer.toneMappingExposure = 2; // try values between 1.2 - 2.0
+renderer.toneMappingExposure = 1.2; // try values between 1.2 - 2.0
 
 
 const scene = new THREE.Scene();
