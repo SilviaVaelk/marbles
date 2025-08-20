@@ -125,7 +125,7 @@ const material = new THREE.MeshPhysicalMaterial({
 
     // Load GLB model
     const loader = new GLTFLoader();
-    loader.load('assets/DamagedHelmet.glb', (gltf) => {
+    loader.load('assets/inner-model.glb', (gltf) => {
       const innerObject = gltf.scene;
       innerObject.scale.set(0.4, 0.4, 0.4);
       innerObject.position.set(0, 0, 0);
