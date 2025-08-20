@@ -10,7 +10,9 @@ const canvas = document.getElementById('marble-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xeeeeee);
+renderer.setClearColor(0xffffff);
+renderer.toneMappingExposure = 1.5; // try values between 1.2 - 2.0
+
 
 const scene = new THREE.Scene();
 
