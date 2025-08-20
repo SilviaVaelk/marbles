@@ -16,19 +16,22 @@
       height: 100%;
     }
   </style>
+
+  <!-- Import map for THREE and GLTFLoader -->
   <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
-      }
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js",
+      "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
     }
+  }
   </script>
 </head>
 <body>
   <canvas id="marble-canvas"></canvas>
 
-  <!-- Single entry point -->
+  <!-- Entry point -->
   <script type="module" src="./app.js"></script>
 </body>
 </html>
