@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './loaders/RGBELoader.js';
-import { GLTFLoader } from './loaders/GLTFLoader.js';
 
 const canvas = document.getElementById('marble-canvas');
 
@@ -15,7 +15,6 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 3, 8);
 
-// Lighting
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight.position.set(5, 10, 5);
@@ -52,7 +51,7 @@ new RGBELoader()
     hdrTexture.dispose();
     pmremGenerator.dispose();
 
-    // Load marble texture
+    // Marble appearance
     const texture = new THREE.TextureLoader().load('assets/marble1.png');
     texture.colorSpace = THREE.SRGBColorSpace;
 
@@ -73,14 +72,28 @@ new RGBELoader()
     marbleMesh.castShadow = true;
     scene.add(marbleMesh);
 
-    // Load GLTF into the marble
+    // Add light inside marble (optional)
+    const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
+    innerLight.position.set(0, 0, 0);
+    marbleMesh.add(innerLight);
+
+    // Load GLB model inside
     const loader = new GLTFLoader();
-loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/main/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb', (gltf) => {
-  const innerObject = gltf.scene;
-  innerObject.scale.set(0.4, 0.4, 0.4);
-  innerObject.position.set(0, 0, 0);
-  marbleMesh.add(innerObject);
-});
+    loader.load('assets/DamagedHelmet.glb', (gltf) => {
+      const innerObject = gltf.scene;
+      innerObject.scale.set(0.4, 0.4, 0.4);
+      innerObject.position.set(0, 0, 0);
+
+      // Optional: adjust materials
+      innerObject.traverse(child => {
+        if (child.isMesh) {
+          child.material.envMapIntensity = 2.5;
+          child.material.needsUpdate = true;
+        }
+      });
+
+      marbleMesh.add(innerObject);
+    });
 
     // Add physics body
     const marbleBody = new CANNON.Body({
@@ -93,7 +106,6 @@ loader.load('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/m
     marbleBody.linearDamping = 0.1;
     world.addBody(marbleBody);
 
-    // Animation loop
     function animate() {
       requestAnimationFrame(animate);
       world.step(1 / 60);
