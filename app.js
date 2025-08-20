@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './loaders/RGBELoader.js';
+import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.18/+esm';
+
 
 const canvas = document.getElementById('marble-canvas');
 
@@ -66,6 +68,24 @@ new RGBELoader()
       clearcoatRoughness: 0.01,
       envMapIntensity: 2.5,
     });
+
+    const gui = new GUI();
+    const materialParams = {
+    roughness: material.roughness,
+    metalness: material.metalness,
+    transmission: material.transmission,
+    clearcoat: material.clearcoat,
+    clearcoatRoughness: material.clearcoatRoughness,
+    envMapIntensity: material.envMapIntensity
+    };
+
+gui.add(materialParams, 'roughness', 0, 1).onChange(v => material.roughness = v);
+gui.add(materialParams, 'metalness', 0, 1).onChange(v => material.metalness = v);
+gui.add(materialParams, 'transmission', 0, 1).onChange(v => material.transmission = v);
+gui.add(materialParams, 'clearcoat', 0, 1).onChange(v => material.clearcoat = v);
+gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
+gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
+
 
     const geometry = new THREE.SphereGeometry(1, 64, 64);
     const marbleMesh = new THREE.Mesh(geometry, material);
