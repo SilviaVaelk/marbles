@@ -16,34 +16,19 @@
       height: 100%;
     }
   </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+      }
+    }
+  </script>
 </head>
 <body>
   <canvas id="marble-canvas"></canvas>
 
-  <!-- Load core libraries and expose globally -->
-  <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
-
-    window.THREE = THREE;
-    window.CANNON = CANNON;
-  </script>
-
-  <!-- Load patched RGBELoader -->
-  <script type="module" src="./loaders/RGBELoader.js"></script>
-  <script type="module" src="./loaders/GLTFLoader.js"></script>
-
-
-  <!-- Start the app AFTER everything is defined -->
-  <script type="module">
-    import init from './app.js';
-
-    init({
-      THREE: window.THREE,
-      CANNON: window.CANNON,
-      RGBELoader: window.RGBELoader,
-      GLTFLoader: window.GLTFLoader,
-    });
-  </script>
+  <!-- Single entry point -->
+  <script type="module" src="./app.js"></script>
 </body>
 </html>
