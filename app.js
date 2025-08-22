@@ -119,7 +119,7 @@ new RGBELoader()
 
     // Load GLB model
     const loader = new GLTFLoader();
-    loader.load('assets/inner-model-4.glb', (gltf) => {
+    loader.load('assets/inner-model-5.glb', (gltf) => {
       const innerObject = gltf.scene;
 
       // Compute bounding box
@@ -186,8 +186,8 @@ new RGBELoader()
       hovered = intersects.length > 0;
 
       if (hovered) {
-        rotator.rotation.y += 0.005;
-        outerGroup.rotation.y += 0.005;
+        rotator.rotation.y += -0.005;
+        outerGroup.rotation.y += -0.005;
       } else {
         document.body.style.cursor = 'default';
       }
