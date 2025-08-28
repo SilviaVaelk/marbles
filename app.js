@@ -146,7 +146,7 @@ function initMarbles(envMap) {
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
     link: 'https://example.com/1',
-    position: new THREE.Vector3(-2, 5, 0),
+    position: new THREE.Vector3(0, 5, 0),
     delay: 0,
     size: 1
   });
@@ -155,9 +155,9 @@ function initMarbles(envMap) {
     color: '#ffeedd',
     glb: 'assets/inner-model-5.glb',
     link: 'https://example.com/2',
-    position: new THREE.Vector3(2, 5, 0),
-    delay: 800,
-    size: 1.2
+    position: new THREE.Vector3(0, 5, 0),
+    delay: 200,
+    size: 0.7
   });
 
   animate();
