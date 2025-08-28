@@ -38,6 +38,35 @@ world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMateri
   restitution: 0.6,
 }));
 
+const marbleToMarbleContact = new CANNON.ContactMaterial(
+  marbleMaterial,
+  marbleMaterial,
+  { friction: 0.3, restitution: 0.7 }
+);
+world.addContactMaterial(marbleToMarbleContact);
+
+// Ground
+const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: groundMaterial });
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+world.addBody(groundBody);
+
+// === Bounding Walls ===
+const wallMaterial = new CANNON.Material();
+const bounds = 5;
+
+function addWall(x, y, z, rotX, rotY, rotZ) {
+  const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
+  wall.position.set(x, y, z);
+  wall.quaternion.setFromEuler(rotX, rotY, rotZ);
+  world.addBody(wall);
+}
+
+addWall(-bounds, 0, 0, 0, Math.PI / 2, 0);   // Left
+addWall(bounds, 0, 0, 0, -Math.PI / 2, 0);   // Right
+addWall(0, 0, bounds, 0, Math.PI, 0);        // Front
+addWall(0, 0, -bounds, 0, 0, 0);             // Back
+
+
 // Marble-to-marble collision
 const marbleToMarbleContact = new CANNON.ContactMaterial(
   marbleMaterial,
