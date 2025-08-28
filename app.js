@@ -5,8 +5,8 @@ import { RGBELoader } from './loaders/RGBELoader.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.18/+esm';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+// --- Core Setup ---
 const canvas = document.getElementById('marble-canvas');
-
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -14,13 +14,6 @@ renderer.setClearColor(0xffffff);
 renderer.toneMappingExposure = 1.8;
 
 const scene = new THREE.Scene();
-
-let hovered = false;
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-let marbleMesh;
-let rotator = new THREE.Group();
-
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 1.5, 3);
 
@@ -36,165 +29,151 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight.position.set(5, 10, 5);
 scene.add(dirLight);
 
-// Physics
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
-
-const marbleMaterial = new CANNON.Material();
-const groundMaterial = new CANNON.Material();
-const contactMaterial = new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
+const materialDefaultMarble = new CANNON.Material();
+const materialGround = new CANNON.Material();
+world.addContactMaterial(new CANNON.ContactMaterial(materialDefaultMarble, materialGround, {
   friction: 0.4,
   restitution: 0.6,
-});
-world.addContactMaterial(contactMaterial);
-
-const groundBody = new CANNON.Body({
-  mass: 0,
-  shape: new CANNON.Plane(),
-  material: groundMaterial,
-});
+}));
+const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: materialGround });
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
-// HDR environment
-const pmremGenerator = new THREE.PMREMGenerator(renderer);
-pmremGenerator.compileEquirectangularShader();
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
 
-new RGBELoader()
-  .setDataType(THREE.UnsignedByteType)
-  .load('assets/zebra.hdr', function (hdrTexture) {
-    const envMap = pmremGenerator.fromEquirectangular(hdrTexture).texture;
-    scene.environment = envMap;
-    hdrTexture.dispose();
-    pmremGenerator.dispose();
+const marbles = [];
+const ray = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
 
+// --- Setup Environment Map (HDR) ---
+new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (hdr) => {
+  const env = pmrem.fromEquirectangular(hdr).texture;
+  scene.environment = env;
+  hdr.dispose();
+  pmrem.dispose();
 
-    // Normal map for marble
-    const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
-    normalMap.colorSpace = THREE.NoColorSpace;
+  // Now we can create marbles
+  initMarbles();  
+  animate();
+});
 
-    const material = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color('#fafafa'),
-      roughness: 0.3,
-      metalness: 0,
-      transmission: 0.9,
-      transparent: true,
-      opacity: 0.8,
-      thickness: 2.5,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.01,
-      envMapIntensity: 2.5,
-      normalMap: normalMap,
-    });
+// --- Marble Factory Function ---
+function createMarble({ position, colourHex, normalTex, glbUrl, linkUrl }) {
+  const group = new THREE.Group();
+  group.position.copy(position);
 
-    // GUI controls
-    const gui = new GUI();
-    const materialParams = {
-      roughness: material.roughness,
-      metalness: material.metalness,
-      transmission: material.transmission,
-      clearcoat: material.clearcoat,
-      clearcoatRoughness: material.clearcoatRoughness,
-      envMapIntensity: material.envMapIntensity
-    };
+  const normalMap = normalTex
+    ? new THREE.TextureLoader().load(normalTex)
+    : null;
+  if (normalMap) normalMap.colorSpace = THREE.NoColorSpace;
 
-    gui.add(materialParams, 'roughness', 0, 1).onChange(v => material.roughness = v);
-    gui.add(materialParams, 'metalness', 0, 1).onChange(v => material.metalness = v);
-    gui.add(materialParams, 'transmission', 0, 1).onChange(v => material.transmission = v);
-    gui.add(materialParams, 'clearcoat', 0, 1).onChange(v => material.clearcoat = v);
-    gui.add(materialParams, 'clearcoatRoughness', 0, 1).onChange(v => material.clearcoatRoughness = v);
-    gui.add(materialParams, 'envMapIntensity', 0, 5).onChange(v => material.envMapIntensity = v);
+  const material = new THREE.MeshPhysicalMaterial({
+    color: new THREE.Color(colourHex),
+    roughness: 0.3,
+    metalness: 0,
+    transmission: 0.9,
+    transparent: true,
+    opacity: 0.8,
+    thickness: 2.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.01,
+    envMapIntensity: 2.5,
+    normalMap: normalMap,
+  });
 
-    // Marble
-    marbleMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
-    marbleMesh.castShadow = true;
-    marbleMesh.add(rotator);
-    const outerGroup = new THREE.Group();
-    outerGroup.add(marbleMesh);
-    scene.add(outerGroup);
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), material);
+  mesh.add(new THREE.Group()); // rotator container
+  group.add(mesh);
+  scene.add(group);
 
-    // Inner light
-    const innerLight = new THREE.PointLight(0xffffff, 1.5, 3);
-    innerLight.position.set(0, 0, 0);
-    rotator.add(innerLight);
+  const body = new CANNON.Body({
+    mass: 3,
+    shape: new CANNON.Sphere(1),
+    material: materialDefaultMarble,
+    position: new CANNON.Vec3(position.x, position.y + 5, position.z),
+  });
+  body.angularDamping = 0.4;
+  body.linearDamping = 0.1;
+  world.addBody(body);
 
-    // Load GLB model
-    const loader = new GLTFLoader();
-    loader.load('assets/inner-model-5.glb', (gltf) => {
-      const innerObject = gltf.scene;
-
-      // Compute bounding box
-      const box = new THREE.Box3().setFromObject(innerObject);
+  // Load inner GLB if provided
+  if (glbUrl) {
+    new GLTFLoader().load(glbUrl, (gltf) => {
+      const obj = gltf.scene;
+      const box = new THREE.Box3().setFromObject(obj);
       const size = new THREE.Vector3();
       box.getSize(size);
-      const maxSize = Math.max(size.x, size.y, size.z);
-
-      // Scale to fit inside sphere
-      const scale = (1 * 2 * 0.9) / maxSize;
-      innerObject.scale.setScalar(scale);
-
-      // Center
+      const scaleFactor = (1 * 2 * 0.9) / Math.max(size.x, size.y, size.z);
+      obj.scale.setScalar(scaleFactor);
       const center = new THREE.Vector3();
       box.getCenter(center);
-      innerObject.position.sub(center);
+      obj.position.sub(center);
 
-      // Tweak materials
-      innerObject.traverse(child => {
-        if (child.isMesh) {
-          child.material.envMapIntensity = 2.5;
-          child.material.needsUpdate = true;
-        }
+      obj.traverse(c => {
+        if (c.isMesh && c.material) { c.material.envMapIntensity = 2.5; c.material.needsUpdate = true; }
       });
 
-      rotator.add(innerObject);
+      mesh.children[0].add(obj);
     });
+  }
 
-    // Physics body
-    const marbleBody = new CANNON.Body({
-      mass: 3,
-      shape: new CANNON.Sphere(1),
-      position: new CANNON.Vec3(0, 5, 0),
-      material: marbleMaterial,
-    });
-    marbleBody.angularDamping = 0.4;
-    marbleBody.linearDamping = 0.1;
-    world.addBody(marbleBody);
+  mesh.userData = { body, link: linkUrl };
+  marbles.push(mesh);
 
-    // Mouse interaction
-    window.addEventListener('mousemove', (event) => {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    });
+  return mesh;
+}
 
-    window.addEventListener('click', () => {
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(marbleMesh);
-      if (intersects.length > 0) {
-        window.open('https://example.com', '_blank');
-      }
-    });
-
-    // Animation
-    function animate() {
-      requestAnimationFrame(animate);
-      world.step(1 / 60);
-
-      marbleMesh.position.copy(marbleBody.position);
-      marbleMesh.quaternion.copy(marbleBody.quaternion);
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObject(marbleMesh);
-      hovered = intersects.length > 0;
-
-      if (hovered) {
-        rotator.rotation.y += -0.005;
-        outerGroup.rotation.y += -0.005;
-      } else {
-        document.body.style.cursor = 'default';
-      }
-
-      controls.update();
-      renderer.render(scene, camera);
-    }
-
-    animate();
+// --- Initialize Some Example Marbles ---
+function initMarbles() {
+  createMarble({
+    position: new THREE.Vector3(-2, 0, 0),
+    colourHex: '#2B1CFF',
+    normalTex: 'assets/marble-normal.jpg',
+    glbUrl: 'assets/inner-model-5.glb',
+    linkUrl: 'https://example.com/project1',
   });
+  createMarble({
+    position: new THREE.Vector3(2, 0, 0),
+    colourHex: '#FF5733',
+    normalTex: 'assets/marble-normal2.jpg',
+    glbUrl: null,
+    linkUrl: 'https://example.com/project2',
+  });
+}
+
+// --- Animation and Interaction ---
+function animate() {
+  requestAnimationFrame(animate);
+  world.step(1 / 60);
+
+  marbles.forEach(m => {
+    m.position.copy(m.userData.body.position);
+    m.quaternion.copy(m.userData.body.quaternion);
+  });
+
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(marbles);
+  document.body.style.cursor = hit.length ? 'pointer' : 'default';
+
+  hit.forEach(h => {
+    const mesh = h.object;
+    mesh.children[0].rotation.y += 0.005;           // inner part
+    mesh.parent.rotation.y += 0.005;                 // outer wrapper
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+window.addEventListener('click', () => {
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(marbles);
+  if (hit.length) window.open(hit[0].object.userData.link, '_blank');
+});
