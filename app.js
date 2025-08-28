@@ -75,13 +75,14 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
     normalMap
   });
 
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(size, 64, 64), material);
-  const rotator = new THREE.Group();
-  const outer = new THREE.Group();
+const rotator = new THREE.Group(); // Inner contents
+const sphere = new THREE.Mesh(...); // Outer glass
 
-  sphere.add(rotator);
-  outer.add(sphere);
-  scene.add(outer);
+const visualGroup = new THREE.Group(); // Wrap both
+visualGroup.add(sphere);
+visualGroup.add(rotator);
+scene.add(visualGroup);
+
 
   const light = new THREE.PointLight(0xffffff, 1.5, 3);
   light.position.set(0, 0, 0);
@@ -100,7 +101,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
 
   const startTime = performance.now();
 
-  const marble = { mesh: sphere, rotator, outer, body, link, delay, startTime, size };
+const marble = { visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size };
   marbles.push(marble);
 
   // Load GLB
@@ -181,8 +182,7 @@ function animate() {
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObject(marble.mesh);
     if (intersects.length > 0) {
-      marble.outer.rotation.y += 0.005;
-      marble.rotator.rotation.y += 0.005;
+    marble.visualGroup.rotation.y += 0.005;
       hovered = marble;
       document.body.style.cursor = 'pointer';
     }
