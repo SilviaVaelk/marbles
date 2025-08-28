@@ -137,28 +137,36 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
 }
 
 function initMarbles() {
-  // Marble 1: with inner model, default translucency
+
   createMarble({
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
     link: 'https://example.com/project1',
-    position: new THREE.Vector3(-2, 5, 0),
+    position: new THREE.Vector3(-1, 5, 0),
     delay: 0,
     size: 1
   });
 
-  // Marble 2: empty inside, highly transparent
+    createMarble({
+    color: '#ffeedd',
+    glb: 'assets/inner-model-5.glb',
+    link: 'https://example.com/project1',
+    position: new THREE.Vector3(0, 5, 0),
+    delay: 200,
+    size: 1.3
+  });
+
   createMarble({
-    color: '#88ccee',
+    color: '#92F5B5',
     glb: null,
     link: 'https://example.com/project2',
-    position: new THREE.Vector3(2, 5, 0),
-    delay: 800,
-    size: 1.2,
+    position: new THREE.Vector3(0.2, 5, 0),
+    delay: 300,
+    size: 0.7,
     materialOptions: {
       transmission: 0.95,
-      opacity: 0.4,
-      thickness: 1.5
+      opacity: 0.8,
+      thickness: 4.5
     }
   });
 
