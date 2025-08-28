@@ -175,8 +175,9 @@ function animate() {
   marbles.forEach(marble => {
     const elapsed = performance.now() - marble.startTime;
     if (elapsed > marble.delay) {
-      marble.mesh.position.copy(marble.body.position);
-      marble.mesh.quaternion.copy(marble.body.quaternion);
+marble.visualGroup.position.copy(marble.body.position);
+marble.visualGroup.quaternion.copy(marble.body.quaternion);
+
     }
 
     raycaster.setFromCamera(mouse, camera);
