@@ -112,7 +112,8 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
     clearcoat: 1.0,
     clearcoatRoughness: 0.01,
     envMapIntensity: 2.5,
-    normalMap
+    normalMap,
+    ...materialOptions
   });
 
   const rotator = new THREE.Group(); // Inner contents
@@ -191,10 +192,16 @@ function initMarbles(envMap) {
 
     createMarble({
     color: '#92F5B5',
+    glb: null,
     link: 'https://example.com/3',
     position: new THREE.Vector3(-1, 5, 0),
     delay: 100,
-    size: 0.7
+    size: 0.7,
+    materialOptions: {
+      transmission: 0.4,
+      opacity: 0.5,
+      thickness: 0.8,
+    }
   });
 
   animate();
