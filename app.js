@@ -28,21 +28,21 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let hovered = null;
 
-// Physics
+// === Physics Setup ===
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 const marbleMaterial = new CANNON.Material();
 const groundMaterial = new CANNON.Material();
+
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
-  friction: 0.4, restitution: 0.6,
+  friction: 0.4,
+  restitution: 0.6,
 }));
 
+// Marble-to-marble collision
 const marbleToMarbleContact = new CANNON.ContactMaterial(
   marbleMaterial,
   marbleMaterial,
-  {
-    friction: 0.3,
-    restitution: 0.7,
-  }
+  { friction: 0.3, restitution: 0.7 }
 );
 world.addContactMaterial(marbleToMarbleContact);
 
@@ -50,54 +50,22 @@ const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), materia
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
-// Bounding walls
-const wallMaterial = new CANNON.Material();
-const wallSize = 10; // adjust to fit your scene size
-
-// Left wall
-const wallLeft = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
-wallLeft.quaternion.setFromEuler(0, Math.PI / 2, 0);
-wallLeft.position.set(-wallSize / 2, 0, 0);
-world.addBody(wallLeft);
-
-// Right wall
-const wallRight = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
-wallRight.quaternion.setFromEuler(0, -Math.PI / 2, 0);
-wallRight.position.set(wallSize / 2, 0, 0);
-world.addBody(wallRight);
-
-// Back wall
-const wallBack = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
-wallBack.quaternion.setFromEuler(0, 0, 0);
-wallBack.position.set(0, 0, -wallSize / 2);
-world.addBody(wallBack);
-
-// Front wall
-const wallFront = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
-wallFront.quaternion.setFromEuler(0, Math.PI, 0);
-wallFront.position.set(0, 0, wallSize / 2);
-world.addBody(wallFront);
-
-
-// Environment
+// === Environment Map ===
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
 
-new RGBELoader()
-  .setDataType(THREE.UnsignedByteType)
-  .load('assets/zebra.hdr', (hdrTexture) => {
-    const envMap = pmrem.fromEquirectangular(hdrTexture).texture;
-    scene.environment = envMap;
-    hdrTexture.dispose();
-    pmrem.dispose();
+new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (hdrTex) => {
+  const envMap = pmrem.fromEquirectangular(hdrTex).texture;
+  scene.environment = envMap;
+  hdrTex.dispose();
+  pmrem.dispose();
 
-    initMarbles(envMap);
-  });
+  initMarbles();
+});
 
-// Marble creation
 const marbles = [];
 
-function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
+function createMarble({ color, glb, link, position, delay = 0, size = 1, materialOptions = {} }) {
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
 
@@ -113,21 +81,20 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
     clearcoatRoughness: 0.01,
     envMapIntensity: 2.5,
     normalMap,
-    ...materialOptions
+    ...materialOptions // overrides here
   });
 
-  const rotator = new THREE.Group(); // Inner contents
+  const rotator = new THREE.Group();
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(size, 64, 64), material);
   sphere.castShadow = true;
 
-  const visualGroup = new THREE.Group(); // Wrap both
+  const visualGroup = new THREE.Group();
   visualGroup.add(sphere);
   visualGroup.add(rotator);
-  visualGroup.visible = false; // hide initially
+  visualGroup.visible = false; // hide until drop starts
   scene.add(visualGroup);
 
   const light = new THREE.PointLight(0xffffff, 1.5, 3);
-  light.position.set(0, 0, 0);
   rotator.add(light);
 
   const body = new CANNON.Body({
@@ -141,7 +108,6 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
   world.addBody(body);
 
   const startTime = performance.now();
-
   const marble = { visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size };
   marbles.push(marble);
 
@@ -170,77 +136,63 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
   }
 }
 
-// Initialization
-function initMarbles(envMap) {
+function initMarbles() {
+  // Marble 1: with inner model, default translucency
   createMarble({
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
-    link: 'https://example.com/1',
-    position: new THREE.Vector3(0, 5, 0),
+    link: 'https://example.com/project1',
+    position: new THREE.Vector3(-2, 5, 0),
     delay: 0,
     size: 1
   });
 
+  // Marble 2: empty inside, highly transparent
   createMarble({
-    color: '#ffeedd',
-    glb: 'assets/inner-model-5.glb',
-    link: 'https://example.com/2',
-    position: new THREE.Vector3(0.3, 5, 0),
-    delay: 200,
-    size: 1.7
-  });
-
-    createMarble({
-    color: '#92F5B5',
+    color: '#88ccee',
     glb: null,
-    link: 'https://example.com/3',
-    position: new THREE.Vector3(-1, 5, 0),
-    delay: 100,
-    size: 0.7,
+    link: 'https://example.com/project2',
+    position: new THREE.Vector3(2, 5, 0),
+    delay: 800,
+    size: 1.2,
     materialOptions: {
-      transmission: 0.4,
-      opacity: 0.5,
-      thickness: 0.8,
+      transmission: 0.95,
+      opacity: 0.4,
+      thickness: 1.5
     }
   });
 
   animate();
 }
 
-// Interaction
-window.addEventListener('mousemove', (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+window.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
 window.addEventListener('click', () => {
-  if (hovered && hovered.link) {
-    window.open(hovered.link, '_blank');
-  }
+  if (hovered && hovered.link) window.open(hovered.link, '_blank');
 });
 
-// Animate
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
-  const now = performance.now();
   hovered = null;
 
   raycaster.setFromCamera(mouse, camera);
+  const now = performance.now();
 
-  marbles.forEach(marble => {
-    const ready = now - marble.startTime > marble.delay;
-    if (ready) {
-      if (!marble.visualGroup.visible) marble.visualGroup.visible = true;
-      marble.visualGroup.position.copy(marble.body.position);
-      marble.visualGroup.quaternion.copy(marble.body.quaternion);
+  marbles.forEach(m => {
+    if (now - m.startTime > m.delay) {
+      if (!m.visualGroup.visible) m.visualGroup.visible = true;
+      m.visualGroup.position.copy(m.body.position);
+      m.visualGroup.quaternion.copy(m.body.quaternion);
     }
 
-    const intersects = raycaster.intersectObject(marble.mesh);
-    if (intersects.length) {
-      marble.rotator.rotation.y += 0.005;
-      marble.visualGroup.rotation.y += 0.005;
-      hovered = marble;
+    const intersects = raycaster.intersectObject(m.mesh);
+    if (intersects.length > 0) {
+      m.rotator.rotation.y += 0.005;
+      hovered = m;
       document.body.style.cursor = 'pointer';
     }
   });
