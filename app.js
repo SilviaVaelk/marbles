@@ -184,8 +184,16 @@ function initMarbles(envMap) {
     color: '#ffeedd',
     glb: 'assets/inner-model-5.glb',
     link: 'https://example.com/2',
-    position: new THREE.Vector3(0, 5, 0),
+    position: new THREE.Vector3(-1, 5, 0),
     delay: 200,
+    size: 1.7
+  });
+
+    createMarble({
+    color: '#fafafa',
+    link: 'https://example.com/3',
+    position: new THREE.Vector3(1, 5, 0),
+    delay: 100,
     size: 0.7
   });
 
