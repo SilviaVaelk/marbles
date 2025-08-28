@@ -35,6 +35,17 @@ const groundMaterial = new CANNON.Material();
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
   friction: 0.4, restitution: 0.6,
 }));
+
+const marbleToMarbleContact = new CANNON.ContactMaterial(
+  marbleMaterial,
+  marbleMaterial,
+  {
+    friction: 0.3,
+    restitution: 0.7,
+  }
+);
+world.addContactMaterial(marbleToMarbleContact);
+
 const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: groundMaterial });
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
