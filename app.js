@@ -76,7 +76,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1 }) {
   });
 
 const rotator = new THREE.Group(); // Inner contents
-const sphere = new THREE.Mesh(...); // Outer glass
+const sphere = new THREE.Mesh(new THREE.SphereGeometry(size, 64, 64), material); // Outer glass
 
 const visualGroup = new THREE.Group(); // Wrap both
 visualGroup.add(sphere);
