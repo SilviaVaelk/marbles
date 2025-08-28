@@ -50,6 +50,35 @@ const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), materia
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
+// Bounding walls
+const wallMaterial = new CANNON.Material();
+const wallSize = 10; // adjust to fit your scene size
+
+// Left wall
+const wallLeft = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
+wallLeft.quaternion.setFromEuler(0, Math.PI / 2, 0);
+wallLeft.position.set(-wallSize / 2, 0, 0);
+world.addBody(wallLeft);
+
+// Right wall
+const wallRight = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
+wallRight.quaternion.setFromEuler(0, -Math.PI / 2, 0);
+wallRight.position.set(wallSize / 2, 0, 0);
+world.addBody(wallRight);
+
+// Back wall
+const wallBack = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
+wallBack.quaternion.setFromEuler(0, 0, 0);
+wallBack.position.set(0, 0, -wallSize / 2);
+world.addBody(wallBack);
+
+// Front wall
+const wallFront = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
+wallFront.quaternion.setFromEuler(0, Math.PI, 0);
+wallFront.position.set(0, 0, wallSize / 2);
+world.addBody(wallFront);
+
+
 // Environment
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
