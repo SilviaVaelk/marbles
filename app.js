@@ -33,26 +33,30 @@ const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 const marbleMaterial = new CANNON.Material();
 const groundMaterial = new CANNON.Material();
 
+// Marble-to-ground contact
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
   friction: 0.4,
   restitution: 0.6,
 }));
 
-const marbleToMarbleContact = new CANNON.ContactMaterial(
-  marbleMaterial,
-  marbleMaterial,
-  { friction: 0.3, restitution: 0.7 }
-);
-world.addContactMaterial(marbleToMarbleContact);
+// Marble-to-marble bouncing
+world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, marbleMaterial, {
+  friction: 0.3,
+  restitution: 0.7,
+}));
 
 // Ground
-const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: groundMaterial });
+const groundBody = new CANNON.Body({
+  mass: 0,
+  shape: new CANNON.Plane(),
+  material: groundMaterial
+});
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
-// === Bounding Walls ===
+// Invisible bounding walls
 const wallMaterial = new CANNON.Material();
-const bounds = 5;
+const BOUND = 5;
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
   const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
@@ -61,25 +65,12 @@ function addWall(x, y, z, rotX, rotY, rotZ) {
   world.addBody(wall);
 }
 
-addWall(-bounds, 0, 0, 0, Math.PI / 2, 0);   // Left
-addWall(bounds, 0, 0, 0, -Math.PI / 2, 0);   // Right
-addWall(0, 0, bounds, 0, Math.PI, 0);        // Front
-addWall(0, 0, -bounds, 0, 0, 0);             // Back
+addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);   // Left
+addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);   // Right
+addWall(0, 0, BOUND, 0, Math.PI, 0);        // Front
+addWall(0, 0, -BOUND, 0, 0, 0);             // Back
 
-
-// Marble-to-marble collision
-const marbleToMarbleContact = new CANNON.ContactMaterial(
-  marbleMaterial,
-  marbleMaterial,
-  { friction: 0.3, restitution: 0.7 }
-);
-world.addContactMaterial(marbleToMarbleContact);
-
-const groundBody = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: groundMaterial });
-groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-world.addBody(groundBody);
-
-// === Environment Map ===
+// HDR environment setup
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
 
@@ -88,7 +79,6 @@ new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (h
   scene.environment = envMap;
   hdrTex.dispose();
   pmrem.dispose();
-
   initMarbles();
 });
 
@@ -110,7 +100,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
     clearcoatRoughness: 0.01,
     envMapIntensity: 2.5,
     normalMap,
-    ...materialOptions // overrides here
+    ...materialOptions,
   });
 
   const rotator = new THREE.Group();
@@ -120,7 +110,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
   const visualGroup = new THREE.Group();
   visualGroup.add(sphere);
   visualGroup.add(rotator);
-  visualGroup.visible = false; // hide until drop starts
+  visualGroup.visible = false;
   scene.add(visualGroup);
 
   const light = new THREE.PointLight(0xffffff, 1.5, 3);
@@ -137,9 +127,8 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
   world.addBody(body);
 
   const startTime = performance.now();
-  const marble = { visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size };
-  marbles.push(marble);
-
+  marbles.push({ visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size, glb });
+  
   if (glb) {
     new GLTFLoader().load(glb, (gltf) => {
       const model = gltf.scene;
@@ -149,10 +138,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
       const scale = (size * 2 * 0.9) / Math.max(sizeVec.x, sizeVec.y, sizeVec.z);
       model.scale.setScalar(scale);
 
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      model.position.sub(center);
-
+      model.position.sub(box.getCenter(new THREE.Vector3()));
       model.traverse(c => {
         if (c.isMesh) {
           c.material.envMapIntensity = 2.5;
@@ -166,39 +152,33 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
 }
 
 function initMarbles() {
-
   createMarble({
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
-    link: 'https://example.com/project1',
-    position: new THREE.Vector3(-1, 5, 0),
-    delay: 0,
-    size: 1
+    link: 'https://example.com/1',
+    position: new THREE.Vector3(-2, 5, 0),
   });
-
-    createMarble({
+  createMarble({
     color: '#ffeedd',
     glb: 'assets/inner-model-5.glb',
-    link: 'https://example.com/project1',
-    position: new THREE.Vector3(0, 5, 0),
-    delay: 200,
-    size: 1.3
+    link: 'https://example.com/2',
+    position: new THREE.Vector3(2, 5, 0),
+    delay: 500,
+    size: 1.2,
   });
-
-  createMarble({
+    createMarble({
     color: '#92F5B5',
     glb: null,
     link: 'https://example.com/project2',
-    position: new THREE.Vector3(0.2, 5, 0),
-    delay: 300,
+    position: new THREE.Vector3(2, 5, 0),
+    delay: 800,
     size: 0.7,
     materialOptions: {
-      transmission: 0.95,
-      opacity: 0.8,
-      thickness: 4.5
+      transmission: 0.5,
+      opacity: 0.9,
+      thickness: 1.5
     }
   });
-
   animate();
 }
 
@@ -214,8 +194,8 @@ window.addEventListener('click', () => {
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
-  hovered = null;
 
+  hovered = null;
   raycaster.setFromCamera(mouse, camera);
   const now = performance.now();
 
@@ -225,9 +205,7 @@ function animate() {
       m.visualGroup.position.copy(m.body.position);
       m.visualGroup.quaternion.copy(m.body.quaternion);
     }
-
-    const intersects = raycaster.intersectObject(m.mesh);
-    if (intersects.length > 0) {
+    if (raycaster.intersectObject(m.mesh).length > 0) {
       m.rotator.rotation.y += 0.005;
       hovered = m;
       document.body.style.cursor = 'pointer';
@@ -235,7 +213,6 @@ function animate() {
   });
 
   if (!hovered) document.body.style.cursor = 'default';
-
   controls.update();
   renderer.render(scene, camera);
 }
