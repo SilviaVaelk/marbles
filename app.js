@@ -156,40 +156,42 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
 }
 
 function initMarbles() {
-    const positions = [-1.5, -0.5, 0.5, 1.5];
-
-  for (let i = 0; i < positions.length; i++) {
-    const x = positions[i] + (Math.random() - 0.5) * 0.5; // small horizontal variation
-    const z = (Math.random() - 0.5) * 0.4; // slight depth variation
-    const delay = 200 + Math.random() * 800; // between 200ms and 1000ms
-    
-  createMarble({
-    color: '#d9d9ff',
-    glb: 'assets/inner-model.glb',
-    link: 'https://example.com/1',
-    position: new THREE.Vector3(x, 5, z),
-    delay,
-    size:1
-  });
-  createMarble({
-    color: '#ffeedd',
-    glb: 'assets/inner-model-5.glb',
-    link: 'https://example.com/2',
-    position: new THREE.Vector3(x, 5, z),
-    delay,
-    size: 1.2,
-  });
-    createMarble({
-    color: '#92F5B5',
-    glb: null,
-    link: 'https://example.com/project2',
-    position: new THREE.Vector3(x, 5, z),
-    delay,
-    size: 0.7,
-  });
+  const configs = [
+    {
+      color: '#d9d9ff',
+      glb: 'assets/inner-model.glb',
+      link: 'https://example.com/1',
+      size: 1
+    },
+    {
+      color: '#ffeedd',
+      glb: 'assets/inner-model-5.glb',
+      link: 'https://example.com/2',
+      size: 1.2
+    },
+    {
+      color: '#92F5B5',
+      glb: null,
+      link: 'https://example.com/project2',
+      size: 0.7
     }
+  ];
+
+  configs.forEach(config => {
+    const x = (Math.random() - 0.5) * 3;
+    const z = (Math.random() - 0.5) * 2;
+    const delay = 200 + Math.random() * 800;
+
+    createMarble({
+      ...config,
+      position: new THREE.Vector3(x, 5, z),
+      delay
+    });
+  });
+
   animate();
 }
+
 
 window.addEventListener('mousemove', (e) => {
   mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
