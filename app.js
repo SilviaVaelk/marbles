@@ -56,7 +56,7 @@ world.addBody(groundBody);
 
 // Invisible bounding walls
 const wallMaterial = new CANNON.Material();
-const BOUND = 5;
+const BOUND = 2;
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
   const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
@@ -69,6 +69,8 @@ addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);   // Left
 addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);   // Right
 addWall(0, 0, BOUND, 0, Math.PI, 0);        // Front
 addWall(0, 0, -BOUND, 0, 0, 0);             // Back
+addWall(0, 2, 0, Math.PI / 2, 0, 0);       // Top wall
+
 
 // HDR environment setup
 const pmrem = new THREE.PMREMGenerator(renderer);
