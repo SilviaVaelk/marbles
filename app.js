@@ -36,13 +36,13 @@ const groundMaterial = new CANNON.Material();
 // Marble-to-ground contact
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
   friction: 0.4,
-  restitution: 0.6,
+  restitution: 0.2,
 }));
 
 // Marble-to-marble bouncing
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, marbleMaterial, {
   friction: 0.3,
-  restitution: 0.7,
+  restitution: 0.2,
 }));
 
 // Ground
@@ -69,7 +69,7 @@ addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);   // Left
 addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);   // Right
 addWall(0, 0, BOUND, 0, Math.PI, 0);        // Front
 addWall(0, 0, -BOUND, 0, 0, 0);             // Back
-addWall(0, 2, 0, Math.PI / 2, 0, 0);       // Top wall
+addWall(0, 6, 0, Math.PI / 2, 0, 0);       // Top wall
 
 
 // HDR environment setup
@@ -124,8 +124,8 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
     position: new CANNON.Vec3(...position.toArray()),
     material: marbleMaterial,
   });
-  body.angularDamping = 0.4;
-  body.linearDamping = 0.1;
+  body.angularDamping = 0.8;
+  body.linearDamping = 0.5;
   world.addBody(body);
 
   const startTime = performance.now();
@@ -172,7 +172,7 @@ function initMarbles() {
     color: '#92F5B5',
     glb: null,
     link: 'https://example.com/project2',
-    position: new THREE.Vector3(2, 5, 0),
+    position: new THREE.Vector3(1.3, 5, 0),
     delay: 800,
     size: 0.7,
     materialOptions: {
