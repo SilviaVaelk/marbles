@@ -57,7 +57,7 @@ world.addBody(groundBody);
 // Invisible bounding walls
 const wallMaterial = new CANNON.Material();
 const BOUND = 5;      // X (left/right)
-const Z_BOUND = 1;    // Z (front/back)
+const Z_BOUND = 2;    // Z (front/back)
 
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
@@ -154,6 +154,15 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
     });
   }
 }
+
+// === Bounding Box Debug Visualization ===
+const boundingBox = new THREE.Mesh(
+  new THREE.BoxGeometry(BOUND * 2, 6, BOUND * 2),
+  new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
+);
+boundingBox.position.set(0, 3, 0); // 3 = half of height (6), adjust if needed
+scene.add(boundingBox);
+
 
 function initMarbles() {
   const configs = [
