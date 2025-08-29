@@ -156,12 +156,13 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
 }
 
 // === Bounding Box Debug Visualization ===
-const boundingBox = new THREE.Mesh(
-  new THREE.BoxGeometry(BOUND * 2, 6, BOUND * 2),
-  new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
-);
-boundingBox.position.set(0, 3, 0); // 3 = half of height (6), adjust if needed
-scene.add(boundingBox);
+const boxGeometry = new THREE.BoxGeometry(BOUND * 2, 6, BOUND * 2);
+const edges = new THREE.EdgesGeometry(boxGeometry);
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+const boundingLines = new THREE.LineSegments(edges, lineMaterial);
+boundingLines.position.set(0, 3, 0); // center Y = half of height
+scene.add(boundingLines);
+
 
 
 function initMarbles() {
