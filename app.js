@@ -57,7 +57,7 @@ world.addBody(groundBody);
 // Invisible bounding walls
 const wallMaterial = new CANNON.Material();
 const BOUND = 2;      // X (left/right)
-const Z_BOUND = 4;    // Z (front/back)
+const Z_BOUND = 2;    // Z (front/back)
 
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
