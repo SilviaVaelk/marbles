@@ -187,6 +187,7 @@ function initMarbles() {
     delay,
     size: 0.7,
   });
+    }
   animate();
 }
 
