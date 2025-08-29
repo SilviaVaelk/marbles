@@ -56,7 +56,9 @@ world.addBody(groundBody);
 
 // Invisible bounding walls
 const wallMaterial = new CANNON.Material();
-const BOUND = 2;
+const BOUND = 2;      // X (left/right)
+const Z_BOUND = 4;    // Z (front/back)
+
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
   const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
@@ -67,8 +69,8 @@ function addWall(x, y, z, rotX, rotY, rotZ) {
 
 addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);   // Left
 addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);   // Right
-addWall(0, 0, BOUND, 0, Math.PI, 0);        // Front
-addWall(0, 0, -BOUND, 0, 0, 0);             // Back
+addWall(0, 0, Z_BOUND, 0, Math.PI, 0);      // Front
+addWall(0, 0, -Z_BOUND, 0, 0, 0);           // Back
 addWall(0, 8, 0, Math.PI / 2, 0, 0);       // Top wall
 
 
@@ -175,11 +177,6 @@ function initMarbles() {
     position: new THREE.Vector3(1.3, 5, 0),
     delay: 800,
     size: 0.7,
-    materialOptions: {
-      transmission: 0.5,
-      opacity: 0.9,
-      thickness: 1.5
-    }
   });
   animate();
 }
