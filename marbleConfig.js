@@ -11,6 +11,7 @@ export const MARBLE_CONFIGS = [
       thickness: 2.0
     }
   },
+  
   {
     color: '#ffeedd',
     glb: 'assets/inner-model-5.glb',
@@ -22,17 +23,18 @@ export const MARBLE_CONFIGS = [
       thickness: 2.5
     }
   },
+  
   {
-    texture: 'assets/marble-pattern-spiral-abstract.png',
-    color: '#ffffff',
-    lightColor: 0x66ccff,
+    color: '#6b00f5',
+    lightColor: 0xff66cc,
     glb: null,
     link: 'https://example.com/project3',
     size: 0.6,
     materialOptions: {
-      transmission: 0.9,
+      transmission: 0.95,
       opacity: 0.8,
-      thickness: 2.5
+      thickness: 5,
+      roughness: 0.05,
     }
   }
 ];
