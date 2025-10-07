@@ -112,7 +112,16 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
 
+  let mapTexture = null;
+  if (texture) {
+  mapTexture = new THREE.TextureLoader().load(texture);
+  mapTexture.colorSpace = THREE.SRGBColorSpace;
+}
+
+
   const material = new THREE.MeshPhysicalMaterial({
+    map: mapTexture,
+    normalMap
     color: new THREE.Color(color),
     roughness: 0.3,
     metalness: 0,
@@ -123,7 +132,6 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
     clearcoat: 1.0,
     clearcoatRoughness: 0.01,
     envMapIntensity: 2.5,
-    normalMap,
     ...materialOptions,
   });
 
