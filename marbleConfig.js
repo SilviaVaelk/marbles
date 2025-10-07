@@ -11,7 +11,7 @@ export const MARBLE_CONFIGS = [
       thickness: 2.0,
       roughness: 0.1,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.01
+      clearcoatRoughness: 0.5
     }
   },
   
@@ -24,6 +24,7 @@ export const MARBLE_CONFIGS = [
       transmission: 0.95,
       opacity: 0.8,
       thickness: 2.5,
+      roughness: 0.95
       clearcoat: 1.0,
       clearcoatRoughness: 0.01
     }
@@ -38,7 +39,7 @@ export const MARBLE_CONFIGS = [
     size: 0.6,
     materialOptions: {
       transmission: 0.95,
-      opacity: 0.2,
+      opacity: 0.95,
       thickness: 5,
       roughness: 0.05,
       clearcoat: 1.0,
