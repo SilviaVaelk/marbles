@@ -9,7 +9,7 @@ export const MARBLE_CONFIGS = [
       transmission: 0.9,
       opacity: 0.85,
       thickness: 2.0,
-      roughness: 0.05,
+      roughness: 0.1,
       clearcoat: 1.0,
       clearcoatRoughness: 0.01
     }
@@ -24,7 +24,6 @@ export const MARBLE_CONFIGS = [
       transmission: 0.95,
       opacity: 0.8,
       thickness: 2.5,
-      roughness: 0.05,
       clearcoat: 1.0,
       clearcoatRoughness: 0.01
     }
@@ -32,6 +31,7 @@ export const MARBLE_CONFIGS = [
   
   {
     texture: 'assets/marble-pattern-spiral-abstract.png',
+    color: '#cccccc',
     lightColor: 0xff66cc,
     glb: null,
     link: 'https://example.com/project3',
