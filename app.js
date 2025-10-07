@@ -20,6 +20,20 @@ const camera = new THREE.OrthographicCamera(
 );
 camera.position.set(0, 2, 6);
 
+window.addEventListener('resize', () => {
+  const aspect = window.innerWidth / window.innerHeight;
+  const zoom = 3;
+
+  camera.left = -aspect * zoom;
+  camera.right = aspect * zoom;
+  camera.top = zoom;
+  camera.bottom = -zoom;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+});
+
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
