@@ -38,7 +38,7 @@ export const MARBLE_CONFIGS = [
     link: 'https://example.com/project3',
     size: 0.6,
     materialOptions: {
-      transmission: 0.75,
+      transmission: 0.3,
       opacity: 0.9,
       thickness: 5,
       roughness: 0.05,
