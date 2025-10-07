@@ -118,7 +118,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
     mapTexture.colorSpace = THREE.SRGBColorSpace;
     mapTexture.wrapS = THREE.RepeatWrapping;
     mapTexture.wrapT = THREE.RepeatWrapping;
-    mapTexture.repeat.set(4, 4); // Adjust tiling amount
+    mapTexture.repeat.set(1, 1); // Adjust tiling amount
   }
 
   const material = new THREE.MeshPhysicalMaterial({
