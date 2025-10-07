@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import { MARBLE_CONFIGS } from './marbleConfig.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './loaders/RGBELoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -158,30 +159,9 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, materia
 
 
 function initMarbles() {
-  const configs = [
-    {
-      color: '#d9d9ff',
-      glb: 'assets/inner-model.glb',
-      link: 'https://example.com/1',
-      size: 1
-    },
-    {
-      color: '#ffeedd',
-      glb: 'assets/inner-model-5.glb',
-      link: 'https://example.com/2',
-      size: 1.2
-    },
-    {
-      color: '#92F5B5',
-      glb: null,
-      link: 'https://example.com/project2',
-      size: 0.7
-    }
-  ];
-
-  configs.forEach(config => {
-    const x = (Math.random() - 0.5) * 3;
-    const z = (Math.random() - 0.5) * 2;
+  MARBLE_CONFIGS.forEach(config => {
+    const x = (Math.random() - 0.5) * 2; // horizontal
+    const z = (Math.random() - 0.5) * 1; // depth
     const delay = 200 + Math.random() * 800;
 
     createMarble({
