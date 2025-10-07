@@ -24,7 +24,7 @@ export const MARBLE_CONFIGS = [
       transmission: 0.95,
       opacity: 0.8,
       thickness: 2.5,
-      roughness: 0.95
+      roughness: 0.95,
       clearcoat: 1.0,
       clearcoatRoughness: 0.01
     }
