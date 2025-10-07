@@ -116,8 +116,6 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   if (texture) {
     mapTexture = new THREE.TextureLoader().load(texture);
     mapTexture.colorSpace = THREE.SRGBColorSpace;
-  }
-
     mapTexture.wrapS = THREE.RepeatWrapping;
     mapTexture.wrapT = THREE.RepeatWrapping;
     mapTexture.repeat.set(4, 4); // Adjust tiling amount
