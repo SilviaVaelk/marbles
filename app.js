@@ -147,7 +147,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   visualGroup.visible = false;
   scene.add(visualGroup);
 
-  const light = new THREE.PointLight(lightColor, 1.5, 3);
+  const light = new THREE.PointLight(lightColor, 3, 6);
   rotator.add(light);
 
   const body = new CANNON.Body({
