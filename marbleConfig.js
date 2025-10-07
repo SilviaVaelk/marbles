@@ -10,8 +10,8 @@ export const MARBLE_CONFIGS = [
       opacity: 0.85,
       thickness: 2.0,
       roughness: 0.1,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.5
+      clearcoat: 2.0,
+      clearcoatRoughness: 0.1
     }
   },
   
@@ -38,8 +38,8 @@ export const MARBLE_CONFIGS = [
     link: 'https://example.com/project3',
     size: 0.6,
     materialOptions: {
-      transmission: 0.95,
-      opacity: 0.95,
+      transmission: 0.75,
+      opacity: 0.9,
       thickness: 5,
       roughness: 0.05,
       clearcoat: 1.0,
