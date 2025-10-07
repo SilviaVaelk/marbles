@@ -108,20 +108,19 @@ new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (h
 
 const marbles = [];
 
-function createMarble({ color, glb, link, position, delay = 0, size = 1, materialOptions = {} }) {
+function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {} }) {
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
 
   let mapTexture = null;
   if (texture) {
-  mapTexture = new THREE.TextureLoader().load(texture);
-  mapTexture.colorSpace = THREE.SRGBColorSpace;
-}
-
+    mapTexture = new THREE.TextureLoader().load(texture);
+    mapTexture.colorSpace = THREE.SRGBColorSpace;
+  }
 
   const material = new THREE.MeshPhysicalMaterial({
     map: mapTexture,
-    normalMap
+    normalMap,
     color: new THREE.Color(color),
     roughness: 0.3,
     metalness: 0,
