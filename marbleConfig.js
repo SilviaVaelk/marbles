@@ -23,14 +23,15 @@ export const MARBLE_CONFIGS = [
     }
   },
   {
+    texture: 'assets/marble-pattern-spiral.png',
     color: '#FF5C5C',
     glb: null,
     link: 'https://example.com/project3',
     size: 0.7,
     materialOptions: {
-      transmission: 0.5,
-      opacity: 0.9,
-      thickness: 1.5
+      transmission: 0.9,
+      opacity: 0.8,
+      thickness: 2.5
     }
   }
 ];
