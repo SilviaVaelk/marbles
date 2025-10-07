@@ -25,6 +25,7 @@ export const MARBLE_CONFIGS = [
   {
     texture: 'assets/marble-pattern-spiral-bw.png',
     color: '#ffffff',
+    lightColor: 0x66ccff
     glb: null,
     link: 'https://example.com/project3',
     size: 0.6,
