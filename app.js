@@ -13,8 +13,13 @@ renderer.setClearColor(0xffffff);
 renderer.toneMappingExposure = 1.8;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+const aspect = window.innerWidth / window.innerHeight;
+const zoom = 3; // lower = zoomed out
+const camera = new THREE.OrthographicCamera(
+  -aspect * zoom, aspect * zoom, zoom, -zoom, 0.1, 100
+);
 camera.position.set(0, 2, 6);
+
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
