@@ -108,7 +108,7 @@ new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (h
 
 const marbles = [];
 
-function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {} }) {
+function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {}, lightColor = 0xffffff }) {
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
 
@@ -144,7 +144,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   visualGroup.visible = false;
   scene.add(visualGroup);
 
-  const light = new THREE.PointLight(0xffffff, 1.5, 3);
+  const light = new THREE.PointLight(lightColor, 1.5, 3);
   rotator.add(light);
 
   const body = new CANNON.Body({
