@@ -8,7 +8,10 @@ export const MARBLE_CONFIGS = [
     materialOptions: {
       transmission: 0.9,
       opacity: 0.85,
-      thickness: 2.0
+      thickness: 2.0,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01
     }
   },
   
@@ -20,21 +23,26 @@ export const MARBLE_CONFIGS = [
     materialOptions: {
       transmission: 0.95,
       opacity: 0.8,
-      thickness: 2.5
+      thickness: 2.5,
+      roughness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01
     }
   },
   
   {
-    color: '#6b00f5',
+    texture: 'assets/marble-pattern-spiral-abstract.png',
     lightColor: 0xff66cc,
     glb: null,
     link: 'https://example.com/project3',
     size: 0.6,
     materialOptions: {
       transmission: 0.95,
-      opacity: 0.8,
+      opacity: 0.2,
       thickness: 5,
       roughness: 0.05,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01
     }
   }
 ];
