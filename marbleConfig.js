@@ -16,7 +16,7 @@ export const MARBLE_CONFIGS = [
   },
   
   {
-    color: '#ffeedd',
+    color: '#000000',
     glb: 'assets/inner-model-5.glb',
     link: 'https://example.com/project2',
     size: 1.2,
