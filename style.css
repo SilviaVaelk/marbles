@@ -23,16 +23,61 @@ body, html {
   left: 0;
 }
 
-#marblePanel {
+.marble-panel {
   display: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  padding: 24px 34px;
+  background: #373639;
+  color: white;
+  border-radius: 100px;
+  box-shadow: 0 12px 16px -4px rgba(16, 24, 40, 0.08),
+              0 4px 6px -2px rgba(16, 24, 40, 0.03);
+  z-index: 1000;
+  font-family: sans-serif;
 }
 
-#marblePanel.visible {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
+.marble-panel.visible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
 }
+
+.marble-panel-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.marble-panel-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.marble-panel-description {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.marble-panel-button {
+  background: white;
+  color: #000;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 100px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.marble-panel-button:hover {
+  background: #f0f0f0;
+}
+
 
