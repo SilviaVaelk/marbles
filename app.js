@@ -205,10 +205,17 @@ function initMarbles() {
 }
 
 
-window.addEventListener('mousemove', (e) => {
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+let mouseX = 0;
+let mouseY = 0;
+
+window.addEventListener('mousemove', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  mouseX = event.clientX;
+  mouseY = event.clientY;
 });
+
 
 
 
@@ -221,44 +228,38 @@ function animate() {
   raycaster.setFromCamera(mouse, camera);
 
   const tooltip = document.getElementById('tooltip');
-  const tooltipText = document.getElementById('tooltip-text');
-  const tooltipButton = document.getElementById('tooltip-button');
+const tooltipText = document.getElementById('tooltip-text');
+const tooltipButton = document.getElementById('tooltip-button');
 
-  marbles.forEach(m => {
-    if (now - m.startTime > m.delay) {
-      if (!m.visualGroup.visible) m.visualGroup.visible = true;
-      m.visualGroup.position.copy(m.body.position);
-      m.visualGroup.quaternion.copy(m.body.quaternion);
-    }
+hovered = null;
+raycaster.setFromCamera(mouse, camera);
 
-    const intersects = raycaster.intersectObject(m.mesh);
-    if (intersects.length > 0) {
-      m.rotator.rotation.y += 0.005;
-      hovered = m;
+marbles.forEach(m => {
+  const intersects = raycaster.intersectObject(m.mesh);
+  if (intersects.length > 0) {
+    m.rotator.rotation.y += 0.005;
+    hovered = m;
 
-      // Tooltip projection
-      const screenPosition = m.mesh.position.clone().project(camera);
-      const tooltipX = (screenPosition.x * 0.5 + 0.5) * window.innerWidth;
-      const tooltipY = (-screenPosition.y * 0.5 + 0.5) * window.innerHeight;
+    // Use cursor position directly
+    tooltip.style.left = `${mouseX + 10}px`;  // Slight offset from cursor
+    tooltip.style.top = `${mouseY + 10}px`;
+    tooltip.style.display = 'block';
+    tooltip.style.opacity = 1;
 
-      tooltip.style.left = `${tooltipX - tooltip.offsetWidth / 2}px`;
-      tooltip.style.top = `${tooltipY - 50}px`;
-      tooltip.style.display = 'block';
-      tooltip.style.opacity = 1;
+    tooltipText.textContent = m.tooltipText || 'Click to learn more';
+    tooltipButton.onclick = () => window.open(m.link, '_blank');
 
-      tooltipText.textContent = m.tooltipText || 'Click to learn more';
-      tooltipButton.onclick = () => window.open(m.link, '_blank');
-
-      document.body.style.cursor = 'pointer';
-    }
-  });
-
-  // If nothing is hovered
-  if (!hovered) {
-    tooltip.style.display = 'none';
-    tooltip.style.opacity = 0;
-    document.body.style.cursor = 'default';
+    document.body.style.cursor = 'pointer';
   }
+});
+
+// Keep tooltip visible if mouse is over it
+if (!hovered && !tooltip.matches(':hover')) {
+  tooltip.style.display = 'none';
+  tooltip.style.opacity = 0;
+  document.body.style.cursor = 'default';
+}
+
 
   controls.update();
   renderer.render(scene, camera);
