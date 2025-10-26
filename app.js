@@ -210,9 +210,7 @@ window.addEventListener('mousemove', (e) => {
   mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 });
 
-window.addEventListener('click', () => {
-  if (hovered && hovered.link) window.open(hovered.link, '_blank');
-});
+
 
 function animate() {
   requestAnimationFrame(animate);
@@ -234,6 +232,35 @@ function animate() {
       document.body.style.cursor = 'pointer';
     }
   });
+
+  const tooltip = document.getElementById('tooltip');
+const tooltipButton = document.getElementById('tooltip-button');
+
+hovered = null;
+raycaster.setFromCamera(mouse, camera);
+const now = performance.now();
+
+marbles.forEach(m => {
+  const intersects = raycaster.intersectObject(m.mesh);
+  if (intersects.length > 0) {
+    hovered = m;
+    
+    // Project 3D position to 2D screen coordinates
+    const screenPosition = m.mesh.position.clone().project(camera);
+    const tooltipX = (screenPosition.x * 0.5 + 0.5) * window.innerWidth;
+    const tooltipY = (-screenPosition.y * 0.5 + 0.5) * window.innerHeight;
+
+    tooltip.style.left = `${tooltipX}px`;
+    tooltip.style.top = `${tooltipY}px`;
+    tooltip.style.display = 'block';
+    tooltipButton.onclick = () => window.open(m.link, '_blank');
+  }
+});
+
+if (!hovered) {
+  tooltip.style.display = 'none';
+}
+
 
   if (!hovered) document.body.style.cursor = 'default';
   controls.update();
