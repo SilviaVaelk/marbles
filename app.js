@@ -218,7 +218,6 @@ window.addEventListener('mousemove', (event) => {
 
 
 
-
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
@@ -228,38 +227,44 @@ function animate() {
   raycaster.setFromCamera(mouse, camera);
 
   const tooltip = document.getElementById('tooltip');
-const tooltipText = document.getElementById('tooltip-text');
-const tooltipButton = document.getElementById('tooltip-button');
+  const tooltipText = document.getElementById('tooltip-text');
+  const tooltipButton = document.getElementById('tooltip-button');
 
-hovered = null;
-raycaster.setFromCamera(mouse, camera);
+  marbles.forEach(m => {
+    const elapsed = now - m.startTime;
 
-marbles.forEach(m => {
-  const intersects = raycaster.intersectObject(m.mesh);
-  if (intersects.length > 0) {
-    m.rotator.rotation.y += 0.005;
-    hovered = m;
+    // Position marble based on physics body
+    if (elapsed > m.delay) {
+      if (!m.visualGroup.visible) m.visualGroup.visible = true;
+      m.visualGroup.position.copy(m.body.position);
+      m.visualGroup.quaternion.copy(m.body.quaternion);
+    }
 
-    // Use cursor position directly
-    tooltip.style.left = `${mouseX + 10}px`;  // Slight offset from cursor
-    tooltip.style.top = `${mouseY + 10}px`;
-    tooltip.style.display = 'block';
-    tooltip.style.opacity = 1;
+    // Hover detection and tooltip
+    const intersects = raycaster.intersectObject(m.mesh);
+    if (intersects.length > 0) {
+      m.rotator.rotation.y += 0.005;
+      hovered = m;
 
-    tooltipText.textContent = m.tooltipText || 'Click to learn more';
-    tooltipButton.onclick = () => window.open(m.link, '_blank');
+      // Tooltip near cursor
+      tooltip.style.left = `${mouseX + 10}px`;
+      tooltip.style.top = `${mouseY + 10}px`;
+      tooltip.style.display = 'block';
+      tooltip.style.opacity = 1;
 
-    document.body.style.cursor = 'pointer';
+      tooltipText.textContent = m.tooltipText || 'Click to learn more';
+      tooltipButton.onclick = () => window.open(m.link, '_blank');
+
+      document.body.style.cursor = 'pointer';
+    }
+  });
+
+  // Hide tooltip unless hovering a marble or the tooltip itself
+  if (!hovered && !tooltip.matches(':hover')) {
+    tooltip.style.display = 'none';
+    tooltip.style.opacity = 0;
+    document.body.style.cursor = 'default';
   }
-});
-
-// Keep tooltip visible if mouse is over it
-if (!hovered && !tooltip.matches(':hover')) {
-  tooltip.style.display = 'none';
-  tooltip.style.opacity = 0;
-  document.body.style.cursor = 'default';
-}
-
 
   controls.update();
   renderer.render(scene, camera);
