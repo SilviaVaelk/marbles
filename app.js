@@ -13,6 +13,12 @@ renderer.setClearColor(0x000000, 0); // transparent background
 
 const scene = new THREE.Scene();
 
+const panel = document.getElementById('marblePanel');
+const panelTitle = document.getElementById('panel-title');
+const panelDescription = document.getElementById('panel-description');
+const panelButton = document.getElementById('panel-button');
+
+
 const aspect = window.innerWidth / window.innerHeight;
 const zoom = 3;
 const camera = new THREE.OrthographicCamera(
@@ -212,27 +218,30 @@ function initMarbles() {
   animate();
 }
 
-function showPanelForMarble(marble) {
-  const panel = document.getElementById('marblePanel');
-  document.getElementById('panelTitle').textContent = marble.title || '';
-  document.getElementById('panelDesc').textContent = marble.description || '';
-  const btn = document.getElementById('panelButton');
-  btn.onclick = () => { window.location.href = marble.link; };
-  panel.classList.add('visible');
-}
-
-function hidePanel() {
-  const panel = document.getElementById('marblePanel');
-  panel.classList.remove('visible');
-}
 
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
 
   const now = performance.now();
+  raycaster.setFromCamera(mouse, camera);
+  hovered = null;
+
+  const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
+  if (intersects.length > 0) {
+    const marble = marbles.find(m => m.mesh === intersects[0].object);
+    if (marble) {
+      marble.rotator.rotation.y += 0.005;
+      hovered = marble;
+      document.body.style.cursor = 'pointer';
+    }
+  } else {
+    document.body.style.cursor = 'default';
+  }
+
   marbles.forEach(m => {
-    if (now - m.startTime > m.delay) {
+    const elapsed = now - m.startTime;
+    if (elapsed > m.delay) {
       if (!m.visualGroup.visible) m.visualGroup.visible = true;
       m.visualGroup.position.copy(m.body.position);
       m.visualGroup.quaternion.copy(m.body.quaternion);
@@ -242,3 +251,22 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
+
+
+window.addEventListener('click', () => {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
+
+  if (intersects.length > 0) {
+    const marble = marbles.find(m => m.mesh === intersects[0].object);
+    if (marble) {
+      panelTitle.textContent = marble.title || 'Untitled';
+      panelDescription.textContent = marble.description || 'No description provided.';
+      panelButton.onclick = () => window.location.href = marble.link;
+      panel.classList.add('visible');
+    }
+  } else {
+    panel.classList.remove('visible');
+  }
+});
+
