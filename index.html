@@ -40,11 +40,17 @@
   <!-- Entry point -->
   <script type="module" src="./app.js"></script>
   
-<div id="marblePanel" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:80%; max‑width:600px; background:#ffffff; box‑shadow:0 4px 12px rgba(0,0,0,0.2); padding:20px; border-radius:8px; z‑index:1000;">
-  <h2 id="panelTitle"></h2>
-  <p id="panelDesc"></p>
-  <button id="panelButton">Learn More</button>
+<div id="marblePanel" class="marble-panel">
+  <div class="marble-panel-content">
+    <div class="marble-panel-text">
+      <div id="panel-title" class="marble-panel-title">Title Placeholder</div>
+      <div id="panel-description" class="marble-panel-description">Description Placeholder</div>
+    </div>
+    <button id="panel-button" class="marble-panel-button">See more</button>
+  </div>
 </div>
+
+
 
 
 </body>
