@@ -12,6 +12,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0x000000, 0); // transparent background
 
 const scene = new THREE.Scene();
+let hovered = null;
 
 const panel = document.getElementById('marblePanel');
 const panelTitle = document.getElementById('panel-title');
