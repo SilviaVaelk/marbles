@@ -9,12 +9,12 @@ const canvas = document.getElementById('marble-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setClearColor(0xffffff);
-renderer.toneMappingExposure = 1.8;
+renderer.setClearColor(0x000000, 0); // transparent background
 
 const scene = new THREE.Scene();
+
 const aspect = window.innerWidth / window.innerHeight;
-const zoom = 3; // lower = zoomed out
+const zoom = 3;
 const camera = new THREE.OrthographicCamera(
   -aspect * zoom, aspect * zoom, zoom, -zoom, 0.1, 100
 );
@@ -22,19 +22,14 @@ camera.position.set(0, 2, 6);
 
 window.addEventListener('resize', () => {
   const aspect = window.innerWidth / window.innerHeight;
-  const zoom = 3;
-
   camera.left = -aspect * zoom;
   camera.right = aspect * zoom;
   camera.top = zoom;
   camera.bottom = -zoom;
   camera.updateProjectionMatrix();
-
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setClearColor(0x000000,0);
 });
-
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -47,26 +42,45 @@ scene.add(dirLight);
 
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
-let hovered = null;
+let mouseX = 0, mouseY = 0;
+let clickedMarble = null;
+
+window.addEventListener('mousemove', (event) => {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  mouseX = event.clientX;
+  mouseY = event.clientY;
+});
+
+window.addEventListener('click', (event) => {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
+  if (intersects.length > 0) {
+    const mesh = intersects[0].object;
+    const marble = marbles.find(m => m.mesh === mesh);
+    if (marble) {
+      showPanelForMarble(marble);
+    }
+  } else {
+    hidePanel();
+  }
+});
 
 // === Physics Setup ===
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 const marbleMaterial = new CANNON.Material();
 const groundMaterial = new CANNON.Material();
 
-// Marble-to-ground contact
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
   friction: 0.4,
   restitution: 0.6,
 }));
 
-// Marble-to-marble bouncing
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, marbleMaterial, {
   friction: 0.3,
   restitution: 0.6,
 }));
 
-// Ground
 const groundBody = new CANNON.Body({
   mass: 0,
   shape: new CANNON.Plane(),
@@ -75,11 +89,9 @@ const groundBody = new CANNON.Body({
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
-// Invisible bounding walls
 const wallMaterial = new CANNON.Material();
-const BOUND = 4;      // X (left/right)
-const Z_BOUND = 2;    // Z (front/back)
-
+const BOUND = 4;
+const Z_BOUND = 2;
 
 function addWall(x, y, z, rotX, rotY, rotZ) {
   const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
@@ -88,14 +100,13 @@ function addWall(x, y, z, rotX, rotY, rotZ) {
   world.addBody(wall);
 }
 
-addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);   // Left
-addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);   // Right
-addWall(0, 0, Z_BOUND, 0, Math.PI, 0);      // Front
-addWall(0, 0, -Z_BOUND, 0, 0, 0);           // Back
-addWall(0, 8, 0, Math.PI / 2, 0, 0);       // Top wall
+addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);
+addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);
+addWall(0, 0, Z_BOUND, 0, Math.PI, 0);
+addWall(0, 0, -Z_BOUND, 0, 0, 0);
+addWall(0, 8, 0, Math.PI / 2, 0, 0);
 
-
-// HDR environment setup
+// HDR environment
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
 
@@ -109,7 +120,7 @@ new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (h
 
 const marbles = [];
 
-function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {}, lightColor = 0xffffff }) {
+function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {}, lightColor = 0xffffff, title = "", description = "" }) {
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
 
@@ -119,7 +130,7 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
     mapTexture.colorSpace = THREE.SRGBColorSpace;
     mapTexture.wrapS = THREE.RepeatWrapping;
     mapTexture.wrapT = THREE.RepeatWrapping;
-    mapTexture.repeat.set(1, 1); // Adjust tiling amount
+    mapTexture.repeat.set(1, 1);
   }
 
   const material = new THREE.MeshPhysicalMaterial({
@@ -162,7 +173,8 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   world.addBody(body);
 
   const startTime = performance.now();
-  marbles.push({ visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size, glb });
+
+  marbles.push({ visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size, title, description });
   
   if (glb) {
     new GLTFLoader().load(glb, (gltf) => {
@@ -180,18 +192,15 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
           c.material.needsUpdate = true;
         }
       });
-
       rotator.add(model);
     });
   }
 }
 
-
-
 function initMarbles() {
   MARBLE_CONFIGS.forEach(config => {
-    const x = (Math.random() - 0.5) * 2; // horizontal
-    const z = (Math.random() - 0.5) * 1; // depth
+    const x = (Math.random() - 0.5) * 2;
+    const z = (Math.random() - 0.5) * 1;
     const delay = 200 + Math.random() * 800;
 
     createMarble({
@@ -200,71 +209,35 @@ function initMarbles() {
       delay
     });
   });
-
   animate();
 }
 
+function showPanelForMarble(marble) {
+  const panel = document.getElementById('marblePanel');
+  document.getElementById('panelTitle').textContent = marble.title || '';
+  document.getElementById('panelDesc').textContent = marble.description || '';
+  const btn = document.getElementById('panelButton');
+  btn.onclick = () => { window.location.href = marble.link; };
+  panel.classList.add('visible');
+}
 
-let mouseX = 0;
-let mouseY = 0;
-
-window.addEventListener('mousemove', (event) => {
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-  mouseX = event.clientX;
-  mouseY = event.clientY;
-});
-
-
+function hidePanel() {
+  const panel = document.getElementById('marblePanel');
+  panel.classList.remove('visible');
+}
 
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
 
   const now = performance.now();
-  hovered = null;
-  raycaster.setFromCamera(mouse, camera);
-
-  const tooltip = document.getElementById('tooltip');
-  const tooltipText = document.getElementById('tooltip-text');
-  const tooltipButton = document.getElementById('tooltip-button');
-
   marbles.forEach(m => {
-    const elapsed = now - m.startTime;
-
-    // Position marble based on physics body
-    if (elapsed > m.delay) {
+    if (now - m.startTime > m.delay) {
       if (!m.visualGroup.visible) m.visualGroup.visible = true;
       m.visualGroup.position.copy(m.body.position);
       m.visualGroup.quaternion.copy(m.body.quaternion);
     }
-
-    // Hover detection and tooltip
-    const intersects = raycaster.intersectObject(m.mesh);
-    if (intersects.length > 0) {
-      m.rotator.rotation.y += 0.005;
-      hovered = m;
-
-      // Tooltip near cursor
-      tooltip.style.left = `${mouseX + 10}px`;
-      tooltip.style.top = `${mouseY + 10}px`;
-      tooltip.style.display = 'block';
-      tooltip.style.opacity = 1;
-
-      tooltipText.textContent = m.tooltipText || 'Click to learn more';
-      tooltipButton.onclick = () => window.open(m.link, '_blank');
-
-      document.body.style.cursor = 'pointer';
-    }
   });
-
-  // Hide tooltip unless hovering a marble or the tooltip itself
-  if (!hovered && !tooltip.matches(':hover')) {
-    tooltip.style.display = 'none';
-    tooltip.style.opacity = 0;
-    document.body.style.cursor = 'default';
-  }
 
   controls.update();
   renderer.render(scene, camera);
