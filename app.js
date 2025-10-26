@@ -216,9 +216,13 @@ function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
 
+  const now = performance.now();
   hovered = null;
   raycaster.setFromCamera(mouse, camera);
-  const now = performance.now();
+
+  const tooltip = document.getElementById('tooltip');
+  const tooltipText = document.getElementById('tooltip-text');
+  const tooltipButton = document.getElementById('tooltip-button');
 
   marbles.forEach(m => {
     if (now - m.startTime > m.delay) {
@@ -226,53 +230,36 @@ function animate() {
       m.visualGroup.position.copy(m.body.position);
       m.visualGroup.quaternion.copy(m.body.quaternion);
     }
-    if (raycaster.intersectObject(m.mesh).length > 0) {
+
+    const intersects = raycaster.intersectObject(m.mesh);
+    if (intersects.length > 0) {
       m.rotator.rotation.y += 0.005;
       hovered = m;
+
+      // Tooltip projection
+      const screenPosition = m.mesh.position.clone().project(camera);
+      const tooltipX = (screenPosition.x * 0.5 + 0.5) * window.innerWidth;
+      const tooltipY = (-screenPosition.y * 0.5 + 0.5) * window.innerHeight;
+
+      tooltip.style.left = `${tooltipX - tooltip.offsetWidth / 2}px`;
+      tooltip.style.top = `${tooltipY - 50}px`;
+      tooltip.style.display = 'block';
+      tooltip.style.opacity = 1;
+
+      tooltipText.textContent = m.tooltipText || 'Click to learn more';
+      tooltipButton.onclick = () => window.open(m.link, '_blank');
+
       document.body.style.cursor = 'pointer';
     }
   });
 
-  const tooltip = document.getElementById('tooltip');
-const tooltipText = document.getElementById('tooltip-text');
-const tooltipButton = document.getElementById('tooltip-button');
-
-hovered = null;
-raycaster.setFromCamera(mouse, camera);
-const now = performance.now();
-
-marbles.forEach(m => {
-  const intersects = raycaster.intersectObject(m.mesh);
-  if (intersects.length > 0) {
-    hovered = m;
-
-    // Project 3D position to 2D screen coordinates
-    const screenPosition = m.mesh.position.clone().project(camera);
-    const tooltipX = (screenPosition.x * 0.5 + 0.5) * window.innerWidth;
-    const tooltipY = (-screenPosition.y * 0.5 + 0.5) * window.innerHeight;
-
-    // Display tooltip slightly above the marble
-    tooltip.style.left = `${tooltipX - tooltip.offsetWidth / 2}px`;
-    tooltip.style.top = `${tooltipY - 50}px`;
-    tooltip.style.display = 'block';
-    tooltip.style.opacity = 1;
-
-    // Dynamic tooltip text and link
-    tooltipText.textContent = m.tooltipText || 'Click to learn more';
-    tooltipButton.onclick = () => window.open(m.link, '_blank');
-
-    // Cursor
-    document.body.style.cursor = 'pointer';
+  // If nothing is hovered
+  if (!hovered) {
+    tooltip.style.display = 'none';
+    tooltip.style.opacity = 0;
+    document.body.style.cursor = 'default';
   }
-});
 
-// Hide tooltip when not hovering any marble
-if (!hovered) {
-  tooltip.style.display = 'none';
-  tooltip.style.opacity = 0;
-  document.body.style.cursor = 'default';
+  controls.update();
+  renderer.render(scene, camera);
 }
-
-// Continue normal rendering
-controls.update();
-renderer.render(scene, camera);
