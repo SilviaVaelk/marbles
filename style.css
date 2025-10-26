@@ -22,3 +22,10 @@ body, html {
   top: 0;
   left: 0;
 }
+
+#tooltip {
+  pointer-events: auto;
+  z-index: 10;
+  transition: opacity 0.2s ease;
+}
+
