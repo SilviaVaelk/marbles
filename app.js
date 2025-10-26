@@ -5,32 +5,25 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from './loaders/RGBELoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+// — Renderer & Canvas Setup
 const canvas = document.getElementById('marble-canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0x000000, 0); // transparent background
 
+// — Scene & Camera
 const scene = new THREE.Scene();
-let hovered = null;
-
-const panel = document.getElementById('marblePanel');
-const panelTitle = document.getElementById('panel-title');
-const panelDescription = document.getElementById('panel-description');
-const panelButton = document.getElementById('panel-button');
-
-
 const aspect = window.innerWidth / window.innerHeight;
 const zoom = 3;
 const camera = new THREE.OrthographicCamera(
   -aspect * zoom, aspect * zoom, zoom, -zoom, 0.1, 100
 );
 camera.position.set(0, 2, 6);
-
 window.addEventListener('resize', () => {
-  const aspect = window.innerWidth / window.innerHeight;
-  camera.left = -aspect * zoom;
-  camera.right = aspect * zoom;
+  const newAspect = window.innerWidth / window.innerHeight;
+  camera.left = -newAspect * zoom;
+  camera.right = newAspect * zoom;
   camera.top = zoom;
   camera.bottom = -zoom;
   camera.updateProjectionMatrix();
@@ -38,6 +31,7 @@ window.addEventListener('resize', () => {
   renderer.setPixelRatio(window.devicePixelRatio);
 });
 
+// — Controls & Lighting
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.target.set(0, 1, 0);
@@ -47,10 +41,16 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
 dirLight.position.set(5, 10, 5);
 scene.add(dirLight);
 
+// — Panel Elements (Info Panel)
+const panel = document.getElementById('marblePanel');
+const panelTitle = document.getElementById('panel-title');
+const panelDescription = document.getElementById('panel-description');
+const panelButton = document.getElementById('panel-button');
+
+// — Raycaster & Mouse
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 let mouseX = 0, mouseY = 0;
-let clickedMarble = null;
 
 window.addEventListener('mousemove', (event) => {
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -58,31 +58,30 @@ window.addEventListener('mousemove', (event) => {
   mouseX = event.clientX;
   mouseY = event.clientY;
 });
-
-window.addEventListener('click', (event) => {
+window.addEventListener('click', () => {
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
   if (intersects.length > 0) {
-    const mesh = intersects[0].object;
-    const marble = marbles.find(m => m.mesh === mesh);
+    const marble = marbles.find(m => m.mesh === intersects[0].object);
     if (marble) {
-      showPanelForMarble(marble);
+      panelTitle.textContent = marble.title || 'Untitled';
+      panelDescription.textContent = marble.description || '';
+      panelButton.onclick = () => { window.location.href = marble.link; };
+      panel.classList.add('visible');
     }
   } else {
-    hidePanel();
+    panel.classList.remove('visible');
   }
 });
 
-// === Physics Setup ===
+// — Physics Setup
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 const marbleMaterial = new CANNON.Material();
 const groundMaterial = new CANNON.Material();
-
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, groundMaterial, {
   friction: 0.4,
   restitution: 0.6,
 }));
-
 world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, marbleMaterial, {
   friction: 0.3,
   restitution: 0.6,
@@ -91,32 +90,30 @@ world.addContactMaterial(new CANNON.ContactMaterial(marbleMaterial, marbleMateri
 const groundBody = new CANNON.Body({
   mass: 0,
   shape: new CANNON.Plane(),
-  material: groundMaterial
+  material: groundMaterial,
 });
 groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 world.addBody(groundBody);
 
+// — Bounding Walls
 const wallMaterial = new CANNON.Material();
 const BOUND = 4;
 const Z_BOUND = 2;
-
 function addWall(x, y, z, rotX, rotY, rotZ) {
   const wall = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material: wallMaterial });
   wall.position.set(x, y, z);
   wall.quaternion.setFromEuler(rotX, rotY, rotZ);
   world.addBody(wall);
 }
-
-addWall(-BOUND, 0, 0, 0, Math.PI / 2, 0);
-addWall(BOUND, 0, 0, 0, -Math.PI / 2, 0);
+addWall(-BOUND, 0, 0, 0, Math.PI/2, 0);
+addWall(BOUND, 0, 0, 0, -Math.PI/2, 0);
 addWall(0, 0, Z_BOUND, 0, Math.PI, 0);
 addWall(0, 0, -Z_BOUND, 0, 0, 0);
-addWall(0, 8, 0, Math.PI / 2, 0, 0);
+addWall(0, 8, 0, Math.PI/2, 0, 0);
 
-// HDR environment
+// — HDR Environment
 const pmrem = new THREE.PMREMGenerator(renderer);
 pmrem.compileEquirectangularShader();
-
 new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (hdrTex) => {
   const envMap = pmrem.fromEquirectangular(hdrTex).texture;
   scene.environment = envMap;
@@ -125,8 +122,10 @@ new RGBELoader().setDataType(THREE.UnsignedByteType).load('assets/zebra.hdr', (h
   initMarbles();
 });
 
+// — Marble Collection
 const marbles = [];
 
+// — Function to Create a Marble
 function createMarble({ color, glb, link, position, delay = 0, size = 1, texture = null, materialOptions = {}, lightColor = 0xffffff, title = "", description = "" }) {
   const normalMap = new THREE.TextureLoader().load('assets/marble-normal.jpg');
   normalMap.colorSpace = THREE.NoColorSpace;
@@ -180,9 +179,8 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   world.addBody(body);
 
   const startTime = performance.now();
-
   marbles.push({ visualGroup, rotator, mesh: sphere, body, link, delay, startTime, size, title, description });
-  
+
   if (glb) {
     new GLTFLoader().load(glb, (gltf) => {
       const model = gltf.scene;
@@ -204,45 +202,27 @@ function createMarble({ color, glb, link, position, delay = 0, size = 1, texture
   }
 }
 
+// — Initialize Marbles and Begin Animation
 function initMarbles() {
   MARBLE_CONFIGS.forEach(config => {
     const x = (Math.random() - 0.5) * 2;
     const z = (Math.random() - 0.5) * 1;
     const delay = 200 + Math.random() * 800;
-
-    createMarble({
-      ...config,
-      position: new THREE.Vector3(x, 5, z),
-      delay
-    });
+    createMarble({ ...config, position: new THREE.Vector3(x, 5, z), delay });
   });
   animate();
 }
 
-
+// — Animation Loop
 function animate() {
   requestAnimationFrame(animate);
   world.step(1 / 60);
 
   const now = performance.now();
   raycaster.setFromCamera(mouse, camera);
-  hovered = null;
-
-  const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
-  if (intersects.length > 0) {
-    const marble = marbles.find(m => m.mesh === intersects[0].object);
-    if (marble) {
-      marble.rotator.rotation.y += 0.005;
-      hovered = marble;
-      document.body.style.cursor = 'pointer';
-    }
-  } else {
-    document.body.style.cursor = 'default';
-  }
 
   marbles.forEach(m => {
-    const elapsed = now - m.startTime;
-    if (elapsed > m.delay) {
+    if (now - m.startTime > m.delay) {
       if (!m.visualGroup.visible) m.visualGroup.visible = true;
       m.visualGroup.position.copy(m.body.position);
       m.visualGroup.quaternion.copy(m.body.quaternion);
@@ -252,22 +232,3 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-
-
-window.addEventListener('click', () => {
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(marbles.map(m => m.mesh));
-
-  if (intersects.length > 0) {
-    const marble = marbles.find(m => m.mesh === intersects[0].object);
-    if (marble) {
-      panelTitle.textContent = marble.title || 'Untitled';
-      panelDescription.textContent = marble.description || 'No description provided.';
-      panelButton.onclick = () => window.location.href = marble.link;
-      panel.classList.add('visible');
-    }
-  } else {
-    panel.classList.remove('visible');
-  }
-});
-
