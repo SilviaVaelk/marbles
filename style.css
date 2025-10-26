@@ -23,9 +23,12 @@ body, html {
   left: 0;
 }
 
-#tooltip {
-  pointer-events: auto;
-  z-index: 10;
-  transition: opacity 0.2s ease;
+#marblePanel {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
 }
-
+#marblePanel.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
