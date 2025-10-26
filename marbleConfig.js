@@ -4,6 +4,7 @@ export const MARBLE_CONFIGS = [
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
     link: 'https://example.com/project1',
+    tooltipText: 'Digital painting',
     size: 1,
     materialOptions: {
       transmission: 0.9,
@@ -20,6 +21,7 @@ export const MARBLE_CONFIGS = [
     lightColor: 0xff66cc,
     glb: 'assets/inner-model-5.glb',
     link: 'https://example.com/project2',
+    tooltipText: 'Experiments',
     size: 1.2,
     materialOptions: {
       transmission: 0.95,
@@ -37,6 +39,7 @@ export const MARBLE_CONFIGS = [
     lightColor: 0xff66cc,
     glb: null,
     link: 'https://example.com/project3',
+    tooltipText: 'Slit-scanner',
     size: 0.6,
     materialOptions: {
       transmission: 0.3,
