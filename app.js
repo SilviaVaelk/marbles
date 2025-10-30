@@ -72,6 +72,14 @@ const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
 const panelButton = document.getElementById('panel-button');
 
+if (marble.link) {
+    panelButton.style.display = 'inline-block';
+    panelButton.onclick = () => window.location.href = marble.link;
+  } else {
+    panelButton.style.display = 'none';
+  }
+
+
 // — Raycaster & Mouse
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
