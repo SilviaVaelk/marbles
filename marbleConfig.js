@@ -1,7 +1,7 @@
 // marbleConfig.js
 export const MARBLE_CONFIGS = [
   {
-    title: "Digital painting",
+    title: "[Digital painting]",
     description: "Blabla",
     link: 'https://example.com/project1',
     color: '#d9d9ff',
@@ -18,8 +18,8 @@ export const MARBLE_CONFIGS = [
   },
   
   {
-    title: "Experiments",
-    description: "Tinkering with Cavalry, Blender, etc.",
+    title: "[Experiments]",
+    description: "Snippets with Cavalry, Blender, etc.",
     link: 'https://example.com/project2',
     color: '#000000',
     lightColor: 0xff66cc,
@@ -36,7 +36,7 @@ export const MARBLE_CONFIGS = [
   },
   
   {
-    title: "Slit-scanner",
+    title: "[Slit-scanner]",
     description: "Experimental tool to achieve the slit-scan effect",
     link: 'https://example.com/project3',
     texture: 'assets/marble-pattern-spiral-abstract.png',
