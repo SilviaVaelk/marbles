@@ -43,6 +43,26 @@ scene.add(dirLight);
 
 // — Panel Elements (Info Panel)
 const panel = document.getElementById('marblePanel');
+panel.style.position = 'fixed';
+panel.style.zIndex = '9999';
+panel.style.bottom = '30px';
+panel.style.left = '50%';
+panel.style.top = 'auto';
+panel.style.transform = 'translateX(-50%)';
+panel.style.width = '600px';
+panel.style.maxWidth = '90%';
+panel.style.height = 'auto';
+panel.style.padding = '20px 30px';
+panel.style.background = '#000';
+panel.style.color = '#fff';
+panel.style.display = 'flex';
+panel.style.alignItems = 'center';
+panel.style.justifyContent = 'space-between';
+panel.style.gap = '24px';
+panel.style.borderRadius = '100px';
+panel.style.boxShadow = '0 12px 16px -4px rgba(0, 0, 0, 0.3)';
+panel.classList.add('visible');
+
 const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
 const panelButton = document.getElementById('panel-button');
