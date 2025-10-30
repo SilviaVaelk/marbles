@@ -43,15 +43,6 @@ scene.add(dirLight);
 
 // — Panel Elements (Info Panel)
 const panel = document.getElementById('marblePanel');
-panel.style.position = 'fixed';
-panel.style.zIndex = '99999';
-panel.style.top = '0px';
-panel.style.left = '0px';
-panel.style.width = '400px';
-panel.style.height = '200px';
-panel.style.background = 'rgba(255,0,0,0.8)';
-panel.classList.add('visible');
-
 const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
 const panelButton = document.getElementById('panel-button');
