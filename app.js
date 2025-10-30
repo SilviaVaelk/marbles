@@ -61,6 +61,13 @@ panel.style.fontFamily = 'IBM Plex Mono Medium, sans-serif';
 panel.style.fontSize = '18px';
 panel.style.textTransform = 'uppercase';
 
+const panelContent = panel.querySelector('.marble-panel-content');
+panelContent.style.display = 'flex';
+panelContent.style.flexDirection = 'column';
+panelContent.style.gap = '16px';
+panelContent.style.alignItems = 'flex-start';
+
+
 const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
 const panelButton = document.getElementById('panel-button');
