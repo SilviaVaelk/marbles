@@ -14,16 +14,7 @@ body, html {
   font-family: 'Inter', sans-serif;
 }
 
-/* Fullscreen canvas */
-#marble-canvas {
-  display: block;
-  width: 100vw;
-  height: 100vh;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-}
+
 
 /* Panel container */
 #marblePanel {
@@ -76,4 +67,15 @@ body, html {
 
 #panel-button:hover {
   background: #f0f0f0;
+}
+
+/* Fullscreen canvas */
+#marble-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
 }
