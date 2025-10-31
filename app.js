@@ -51,14 +51,14 @@ panel.style.top = 'auto';
 panel.style.width = '400px';
 panel.style.height = 'auto';
 panel.style.background = 'transparent';
-panel.style.color = '#3F3F3F';
+panel.style.color = '#000';
 panel.style.display = 'flex';
 panel.style.alignItems = 'left';
 panel.style.justifyContent = 'space-between';
 panel.style.gap = '24px';
 panel.classList.add('visible');
 panel.style.fontFamily = 'IBM Plex Mono Medium, sans-serif';
-panel.style.fontSize = '18px';
+panel.style.fontSize = '12px';
 panel.style.textTransform = 'uppercase';
 
 const panelContent = panel.querySelector('.marble-panel-content');
