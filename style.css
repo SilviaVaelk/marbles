@@ -47,23 +47,6 @@ body, html {
   opacity: 0.75;
 }
 
-/* Button styling */
-#panel-button {
-  padding: 8px 16px;
-  background: #ffffff;
-  color: #1a1a1a;
-  border: none;
-  border-radius: 100px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-#panel-button:hover {
-  background: #f0f0f0;
-}
-
 /* Fullscreen canvas */
 #marble-canvas {
   position: fixed;
