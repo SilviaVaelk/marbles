@@ -70,7 +70,6 @@ panelContent.style.alignItems = 'flex-start';
 
 const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
-panelDescription.innerHTML = marble.description || '';
 
 // — Raycaster & Mouse
 const raycaster = new THREE.Raycaster();
@@ -90,7 +89,7 @@ window.addEventListener('click', () => {
     const marble = marbles.find(m => m.mesh === intersects[0].object);
     if (marble) {
       panelTitle.textContent = marble.title || 'Untitled';
-      panelDescription.textContent = marble.description || '';
+      panelDescription.innerHTML = marble.description || '';
       panel.classList.add('visible');
     }
   } else {
