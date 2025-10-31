@@ -70,8 +70,7 @@ panelContent.style.alignItems = 'flex-start';
 
 const panelTitle = document.getElementById('panel-title');
 const panelDescription = document.getElementById('panel-description');
-const panelButton = document.getElementById('panel-button');
-
+panelDescription.innerHTML = marble.description || '';
 
 // — Raycaster & Mouse
 const raycaster = new THREE.Raycaster();
@@ -92,7 +91,6 @@ window.addEventListener('click', () => {
     if (marble) {
       panelTitle.textContent = marble.title || 'Untitled';
       panelDescription.textContent = marble.description || '';
-      panelButton.onclick = () => { window.location.href = marble.link; };
       panel.classList.add('visible');
     }
   } else {
