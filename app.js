@@ -97,6 +97,21 @@ window.addEventListener('click', () => {
   }
 });
 
+const panelLinks = panel.querySelectorAll('a');
+panelLinks.forEach(link => {
+  link.style.color = 'inherit';
+  link.style.textDecoration = 'underline';
+
+  link.addEventListener('mouseenter', () => {
+    link.style.color = 'inherit';
+  });
+
+  link.addEventListener('visited', () => {
+    link.style.color = 'inherit';
+  });
+});
+
+
 // — Physics Setup
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.82, 0) });
 const marbleMaterial = new CANNON.Material();
