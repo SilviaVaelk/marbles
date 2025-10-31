@@ -2,7 +2,7 @@
 export const MARBLE_CONFIGS = [
   {
     title: "[Digital painting]",
-    description: "When I'm left unsupervised with a colour picker. <a href="https://www.silviavaelk.com/digital-painting" target="_blank">Click here</a>.",
+    description: 'When I\'m left unsupervised with a colour picker. <a href="https://www.silviavaelk.com/digital-painting" target="_blank">Click here</a>.',
     color: '#d9d9ff',
     glb: 'assets/inner-model.glb',
     size: 1,
