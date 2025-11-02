@@ -90,6 +90,13 @@ window.addEventListener('click', () => {
     if (marble) {
       panelTitle.textContent = marble.title || 'Untitled';
       panelDescription.innerHTML = marble.description || '';
+      const links = panelDescription.querySelectorAll('a');
+links.forEach(link => {
+  link.style.color = 'inherit';
+  link.style.textDecoration = 'underline';
+  link.style.fontWeight = 'normal';
+});
+
       panel.classList.add('visible');
     }
   } else {
@@ -97,19 +104,6 @@ window.addEventListener('click', () => {
   }
 });
 
-const panelLinks = panel.querySelectorAll('a');
-panelLinks.forEach(link => {
-  link.style.color = 'inherit';
-  link.style.textDecoration = 'underline';
-
-  link.addEventListener('mouseenter', () => {
-    link.style.color = 'inherit';
-  });
-
-  link.addEventListener('visited', () => {
-    link.style.color = 'inherit';
-  });
-});
 
 
 // — Physics Setup
