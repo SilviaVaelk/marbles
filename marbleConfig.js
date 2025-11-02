@@ -21,7 +21,7 @@ export const MARBLE_CONFIGS = [
     title: "[Experiments]",
     description: "Snippets with Cavalry, Blender, etc.",
     link: 'https://example.com/project2',
-    color: '#000000',
+    color: '#ffffff',
     lightColor: 0xff66cc,
     glb: 'assets/inner-model-5.glb',
     size: 1.2,
